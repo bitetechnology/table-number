@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Bite Sushi House - Table Selection</title>
+    <style>
+        /* --- Enhanced Color Palette & Variables --- */
+        :root {
+            --bg-primary: #0a0f1a;
+            --bg-secondary: #0f1724;
+            --surface-primary: #141b2e;
+            --surface-secondary: #1a2340;
+            --accent-primary: #00ff9b;
+            --accent-secondary: #30ffad; /* Made closer to primary for subtlety */
+            --text-primary: #ffffff;
+            --text-secondary: #b8c5d6;
+            --text-muted: #6b7a94;
+            --border-primary: #2a3754;
+            --shadow-primary: rgba(0, 255, 155, 0.15);
+            --shadow-secondary: rgba(0, 255, 155, 0.08);
+            --glass-bg: rgba(20, 27, 46, 0.7);
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(0, 255, 155, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 255, 155, 0.06) 0%, transparent 50%),
+                linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: clamp(15px, 3vw, 30px);
+            overflow-y: auto;
+        }
+
+        /* --- Main Container --- */
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            padding: clamp(25px, 5vw, 50px);
+            border-radius: 24px;
+            text-align: center;
+            position: relative;
+        }
+
+        /* --- Enhanced Header --- */
+        .header-section {
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(2rem, 5vw, 3rem); /* Made smaller */
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-secondary) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -2px;
+            margin-bottom: 8px;
+            text-shadow: 0 0 30px var(--shadow-primary);
+            position: relative;
+        }
+        
+        /* --- Enhanced Main Button --- */
+        #open-modal-btn {
+            width: 100%;
+            padding: 20px 30px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%); /* Less evident gradient */
+            color: var(--bg-primary);
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 8px 25px rgba(0, 255, 155, 0.25),
+                0 0 0 1px rgba(255, 255, 255, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        #open-modal-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.2) 50%, 
+                transparent 100%);
+            transition: left 0.6s ease;
+        }
+
+        #open-modal-btn:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 
+                0 12px 35px rgba(0, 255, 155, 0.35),
+                0 0 0 1px rgba(255, 255, 255, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        #open-modal-btn:hover::before {
+            left: 100%;
+        }
+        
+        #open-modal-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        /* --- Enhanced Button Grid --- */
+        #button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 16px;
+            max-height: 60vh;
+            overflow-y: auto;
+            padding: 20px;
+            border-radius: 20px;
+            background: rgba(20, 27, 46, 0.4);
+            border: 1px solid var(--border-primary);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        #button-grid::-webkit-scrollbar { 
+            width: 10px; 
+        }
+        #button-grid::-webkit-scrollbar-track { 
+            background: transparent; 
+            border-radius: 10px;
+        }
+        #button-grid::-webkit-scrollbar-thumb { 
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 10px;
+            border: 2px solid var(--surface-primary);
+        }
+        #button-grid::-webkit-scrollbar-thumb:hover { 
+            background: linear-gradient(135deg, var(--accent-secondary), var(--accent-tertiary));
+        }
+
+        .table-btn {
+            background: linear-gradient(135deg, #1e294b 0%, var(--surface-primary) 100%); /* Subtle gradient */
+            color: var(--text-primary);
+            border: 1px solid var(--border-primary);
+            padding: 18px 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .table-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 0;
+        }
+
+        .table-btn > span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .table-btn:hover {
+            transform: translateY(-4px) scale(1.05);
+            border-color: var(--accent-primary);
+            color: var(--bg-primary);
+            box-shadow: 
+                0 10px 25px rgba(0, 255, 155, 0.2),
+                0 0 20px rgba(0, 255, 155, 0.1);
+        }
+
+        .table-btn:hover > span {
+             color: var(--bg-primary);
+        }
+
+        .table-btn:hover::before {
+            opacity: 1;
+        }
+        
+        .table-btn:active {
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        /* --- Enhanced Modal --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 15, 26, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: var(--glass-bg);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            width: 100%;
+            max-width: 450px;
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 
+                0 0 40px var(--shadow-primary),
+                0 0 80px var(--shadow-secondary);
+            animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        
+        @keyframes modalSlideIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(-30px) scale(0.95); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+        }
+
+        #modal-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: var(--surface-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 50%;
+            cursor: pointer;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        #modal-close-btn:hover {
+            color: var(--text-primary);
+            background: var(--accent-primary);
+            border-color: var(--accent-secondary);
+            transform: scale(1.1);
+        }
+
+        #modal-table-input {
+            width: 100%;
+            padding: 18px 24px;
+            font-size: 2rem;
+            text-align: center;
+            background: var(--surface-primary);
+            border: 2px solid var(--border-primary);
+            border-radius: 16px;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        #modal-table-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 20px rgba(0, 255, 155, 0.2);
+        }
+        
+        #modal-suggestions {
+            max-height: 160px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            background: var(--surface-primary);
+            border: 1px solid var(--border-primary);
+        }
+
+        .suggestion-item {
+            padding: 16px 20px;
+            font-size: 1.2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .suggestion-item:hover { 
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: var(--bg-primary);
+        }
+        
+        /* --- Enhanced Custom Keypad --- */
+        #keypad {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .keypad-row {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+        .keypad-btn {
+            flex: 1;
+            padding: 16px 0;
+            font-size: 1.4rem;
+            font-weight: 600;
+            border-radius: 12px;
+            border: 1px solid var(--border-primary);
+            background: linear-gradient(135deg, #1e294b 0%, var(--surface-primary) 100%); /* Subtle gradient */
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .keypad-btn.key-char {
+            background: linear-gradient(135deg, #2a3754 0%, #1e294b 100%); /* Subtle gradient */
+        }
+
+        .keypad-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .keypad-btn:active {
+            transform: scale(0.95);
+        }
+
+        .keypad-btn:active > span {
+            color: var(--bg-primary);
+        }
+
+        .keypad-btn:active::before {
+            opacity: 1;
+        }
+
+        .keypad-btn.wide { 
+            flex: 4.2; 
+        }
+
+        /* Style for clicked buttons before navigation */
+        .table-btn.selected, .suggestion-item.selected {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)) !important;
+            transform: scale(1.05);
+            border-color: var(--accent-secondary) !important;
+        }
+
+        .table-btn.selected > span, .suggestion-item.selected {
+             color: var(--bg-primary) !important;
+        }
+
+
+        /* --- Responsive Enhancements --- */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            #button-grid {
+                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+                gap: 12px;
+                padding: 15px;
+            }
+            
+            .modal-content {
+                margin: 15px;
+                padding: 25px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header-section">
+            <h1>Bite Sushi House</h1>
+        </div>
+        <button id="open-modal-btn">Enter Table Number</button>
+        <div id="button-grid"></div>
+    </div>
+
+    <!-- Modal HTML -->
+    <div id="table-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button id="modal-close-btn">&times;</button>
+            <h2 style="text-align: center; margin-top: 0;">Find Your Table</h2>
+            <input type="text" id="modal-table-input" placeholder="_" autocomplete="off" readonly>
+            <div id="modal-suggestions"></div>
+
+            <div id="keypad">
+                <div class="keypad-row">
+                    <button class="keypad-btn" data-key="1"><span>1</span></button>
+                    <button class="keypad-btn" data-key="2"><span>2</span></button>
+                    <button class="keypad-btn" data-key="3"><span>3</span></button>
+                    <button class="keypad-btn" data-key="4"><span>4</span></button>
+                    <button class="keypad-btn" data-key="5"><span>5</span></button>
+                </div>
+                <div class="keypad-row">
+                    <button class="keypad-btn" data-key="6"><span>6</span></button>
+                    <button class="keypad-btn" data-key="7"><span>7</span></button>
+                    <button class="keypad-btn" data-key="8"><span>8</span></button>
+                    <button class="keypad-btn" data-key="9"><span>9</span></button>
+                    <button class="keypad-btn" data-key="0"><span>0</span></button>
+                </div>
+                 <div class="keypad-row">
+                    <button class="keypad-btn key-char" data-key="B"><span>B</span></button>
+                    <button class="keypad-btn key-char" data-key="C"><span>C</span></button>
+                    <button class="keypad-btn key-char" data-key="F"><span>F</span></button>
+                    <button class="keypad-btn key-char" data-key="G"><span>G</span></button>
+                    <button class="keypad-btn key-char" data-key="H"><span>H</span></button>
+                </div>
+                <div class="keypad-row">
+                    <button class="keypad-btn wide" data-key="backspace"><span>⌫</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Data and DOM elements
+            const tablesData = [
+              { "link": "https://bite.technology/menu/53/273", "name": " 01" },
+              { "link": "https://bite.technology/menu/53/274", "name": "01 B" },
+              { "link": "https://bite.technology/menu/53/275", "name": "01 C" },
+              { "link": "https://bite.technology/menu/53/276", "name": "01 F" },
+              { "link": "https://bite.technology/menu/53/277", "name": "01 G" },
+              { "link": "https://bite.technology/menu/53/278", "name": " 02 " },
+              { "link": "https://bite.technology/menu/53/279", "name": "02 B" },
+              { "link": "https://bite.technology/menu/53/280", "name": "02 C" },
+              { "link": "https://bite.technology/menu/53/281", "name": "02 F" },
+              { "link": "https://bite.technology/menu/53/282", "name": "02 G" },
+              { "link": "https://bite.technology/menu/53/283", "name": "02 H" },
+              { "link": "https://bite.technology/menu/53/284", "name": " 03" },
+              { "link": "https://bite.technology/menu/53/285", "name": "03 B" },
+              { "link": "https://bite.technology/menu/53/286", "name": "03 C" },
+              { "link": "https://bite.technology/menu/53/287", "name": "03 F" },
+              { "link": "https://bite.technology/menu/53/288", "name": " 05" },
+              { "link": "https://bite.technology/menu/53/289", "name": "05 B" },
+              { "link": "https://bite.technology/menu/53/290", "name": "05 C" },
+              { "link": "https://bite.technology/menu/53/291", "name": "05 F" },
+              { "link": "https://bite.technology/menu/53/292", "name": "05 G" },
+              { "link": "https://bite.technology/menu/53/293", "name": " 06" },
+              { "link": "https://bite.technology/menu/53/294", "name": "06 B" },
+              { "link": "https://bite.technology/menu/53/295", "name": "06 C" },
+              { "link": "https://bite.technology/menu/53/296", "name": "06 F" },
+              { "link": "https://bite.technology/menu/53/297", "name": "06 G" },
+              { "link": "https://bite.technology/menu/53/298", "name": " 07" },
+              { "link": "https://bite.technology/menu/53/299", "name": "07 B" },
+              { "link": "https://bite.technology/menu/53/300", "name": "07 C" },
+              { "link": "https://bite.technology/menu/53/301", "name": "07 F" },
+              { "link": "https://bite.technology/menu/53/302", "name": "07 G" },
+              { "link": "https://bite.technology/menu/53/303", "name": " 08" },
+              { "link": "https://bite.technology/menu/53/304", "name": "08 B" },
+              { "link": "https://bite.technology/menu/53/305", "name": "08 C" },
+              { "link": "https://bite.technology/menu/53/306", "name": "08 F" },
+              { "link": "https://bite.technology/menu/53/307", "name": "08 G" },
+              { "link": "https://bite.technology/menu/53/308", "name": " 09" },
+              { "link": "https://bite.technology/menu/53/309", "name": "09 B" },
+              { "link": "https://bite.technology/menu/53/310", "name": "09 C" },
+              { "link": "https://bite.technology/menu/53/311", "name": "09 F" },
+              { "link": "https://bite.technology/menu/53/312", "name": "09 G" },
+              { "link": "https://bite.technology/menu/53/313", "name": " 10" },
+              { "link": "https://bite.technology/menu/53/314", "name": "10 B" },
+              { "link": "https://bite.technology/menu/53/315", "name": "10 C" },
+              { "link": "https://bite.technology/menu/53/316", "name": "10 F" },
+              { "link": "https://bite.technology/menu/53/317", "name": " 11" },
+              { "link": "https://bite.technology/menu/53/318", "name": "11 B" },
+              { "link": "https://bite.technology/menu/53/319", "name": "11 C" },
+              { "link": "https://bite.technology/menu/53/320", "name": "11 F" },
+              { "link": "https://bite.technology/menu/53/321", "name": " 15" },
+              { "link": "https://bite.technology/menu/53/322", "name": "15 B" },
+              { "link": "https://bite.technology/menu/53/323", "name": "15 B" },
+              { "link": "https://bite.technology/menu/53/324", "name": "15 C" },
+              { "link": "https://bite.technology/menu/53/325", "name": "15 G" },
+              { "link": "https://bite.technology/menu/53/326", "name": " 16" },
+              { "link": "https://bite.technology/menu/53/327", "name": "16 B" },
+              { "link": "https://bite.technology/menu/53/328", "name": "16 C" },
+              { "link": "https://bite.technology/menu/53/329", "name": "16 G" },
+              { "link": "https://bite.technology/menu/53/330", "name": " 18" },
+              { "link": "https://bite.technology/menu/53/331", "name": " 19" },
+              { "link": "https://bite.technology/menu/53/332", "name": " 20" },
+              { "link": "https://bite.technology/menu/53/333", "name": " 20" },
+              { "link": "https://bite.technology/menu/53/334", "name": "20 B" },
+              { "link": "https://bite.technology/menu/53/335", "name": " 21" },
+              { "link": "https://bite.technology/menu/53/336", "name": "21 B" },
+              { "link": "https://bite.technology/menu/53/337", "name": " 22" },
+              { "link": "https://bite.technology/menu/53/338", "name": "22 B" },
+              { "link": "https://bite.technology/menu/53/339", "name": "22 C" },
+              { "link": "https://bite.technology/menu/53/340", "name": " 23" },
+              { "link": "https://bite.technology/menu/53/341", "name": "23 B" },
+              { "link": "https://bite.technology/menu/53/342", "name": "23 C" },
+              { "link": "https://bite.technology/menu/53/343", "name": " 25" },
+              { "link": "https://bite.technology/menu/53/344", "name": "25 B" },
+              { "link": "https://bite.technology/menu/53/345", "name": " 26" },
+              { "link": "https://bite.technology/menu/53/346", "name": "26 B" },
+              { "link": "https://bite.technology/menu/53/347", "name": " 31" },
+              { "link": "https://bite.technology/menu/53/348", "name": "31 B" },
+              { "link": "https://bite.technology/menu/53/349", "name": "31 C" },
+              { "link": "https://bite.technology/menu/53/350", "name": " 32" },
+              { "link": "https://bite.technology/menu/53/351", "name": "32 B" },
+              { "link": "https://bite.technology/menu/53/352", "name": "32 C" },
+              { "link": "https://bite.technology/menu/53/353", "name": " 33" },
+              { "link": "https://bite.technology/menu/53/354", "name": "33 B" },
+              { "link": "https://bite.technology/menu/53/355", "name": "33 C" },
+              { "link": "https://bite.technology/menu/53/356", "name": " 35" },
+              { "link": "https://bite.technology/menu/53/357", "name": "35 B" },
+              { "link": "https://bite.technology/menu/53/358", "name": "35 C" },
+              { "link": "https://bite.technology/menu/53/359", "name": " 36" },
+              { "link": "https://bite.technology/menu/53/360", "name": "36 B" },
+              { "link": "https://bite.technology/menu/53/361", "name": "36 C" },
+              { "link": "https://bite.technology/menu/53/362", "name": " 37" },
+              { "link": "https://bite.technology/menu/53/6462", "name": "37 B" },
+              { "link": "https://bite.technology/menu/53/6553", "name": "37 C" },
+              { "link": "https://bite.technology/menu/53/6645", "name": "38 " },
+              { "link": "https://bite.technology/menu/53/6738", "name": "38 B" },
+              { "link": "https://bite.technology/menu/53/6832", "name": "38 C" },
+              { "link": "https://bite.technology/menu/53/6927", "name": " 39" },
+              { "link": "https://bite.technology/menu/53/7023", "name": "39 B" },
+              { "link": "https://bite.technology/menu/53/7120", "name": " 40" },
+              { "link": "https://bite.technology/menu/53/7218", "name": "40 B" },
+              { "link": "https://bite.technology/menu/53/7317", "name": "40 C" },
+              { "link": "https://bite.technology/menu/53/7417", "name": " 41" },
+              { "link": "https://bite.technology/menu/53/7518", "name": "41 B" },
+              { "link": "https://bite.technology/menu/53/7620", "name": "41 C" },
+              { "link": "https://bite.technology/menu/53/7723", "name": " 42" },
+              { "link": "https://bite.technology/menu/53/7827", "name": "42 B" },
+              { "link": "https://bite.technology/menu/53/7932", "name": "42 C" }
+            ];
+
+            const buttonGrid = document.getElementById('button-grid');
+            const modal = document.getElementById('table-modal');
+            const openModalBtn = document.getElementById('open-modal-btn');
+            const closeModalBtn = document.getElementById('modal-close-btn');
+            const modalInput = document.getElementById('modal-table-input');
+            const suggestionsContainer = document.getElementById('modal-suggestions');
+            const keypad = document.getElementById('keypad');
+            
+            // --- Modal Controls ---
+            openModalBtn.addEventListener('click', () => {
+                modal.style.display = 'flex';
+            });
+
+            const closeModal = () => {
+                modal.style.display = 'none';
+                modalInput.value = '';
+                suggestionsContainer.innerHTML = '';
+            };
+
+            closeModalBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', (event) => {
+                if (event.target === modal) closeModal();
+            });
+
+            // --- Helper ---
+            const cleanName = (name) => name.trim().replace(/\s+/g, ' ');
+
+            // --- Main Grid Buttons ---
+            function renderMainGridButtons(tables) {
+                buttonGrid.innerHTML = '';
+                tables.forEach(table => {
+                    const button = document.createElement('button');
+                    button.className = 'table-btn';
+                    const span = document.createElement('span');
+                    span.textContent = cleanName(table.name);
+                    button.appendChild(span);
+                    button.addEventListener('click', (e) => {
+                        e.currentTarget.classList.add('selected');
+                        setTimeout(() => {
+                            window.location.href = table.link;
+                        }, 400);
+                    });
+                    buttonGrid.appendChild(button);
+                });
+            }
+
+            // --- Modal Suggestions & Navigation ---
+            function navigateToTable(tableName) {
+                const exactMatch = tablesData.find(table => 
+                    cleanName(table.name).toLowerCase() === tableName.toLowerCase().trim()
+                );
+                if (exactMatch) {
+                    window.location.href = exactMatch.link;
+                }
+            }
+
+            // --- Keypad Logic ---
+            keypad.addEventListener('click', (event) => {
+                const keyButton = event.target.closest('.keypad-btn');
+                if (!keyButton) return;
+                
+                const key = keyButton.dataset.key;
+                
+                if (key === 'backspace') {
+                    modalInput.value = modalInput.value.slice(0, -1);
+                } else {
+                    modalInput.value += key;
+                }
+                
+                // Trigger input event to update suggestions
+                modalInput.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+            
+            // --- Suggestion Logic (attached to modal input) ---
+            modalInput.addEventListener('input', () => {
+                const searchTerm = modalInput.value.toLowerCase().trim();
+                suggestionsContainer.innerHTML = '';
+
+                if (searchTerm.length === 0) return;
+
+                const filteredTables = tablesData.filter(table => 
+                    cleanName(table.name).toLowerCase().includes(searchTerm)
+                );
+                
+                filteredTables.slice(0, 5).forEach(table => { // Limit to 5 suggestions
+                    const item = document.createElement('div');
+                    item.className = 'suggestion-item';
+                    item.textContent = cleanName(table.name);
+                    item.addEventListener('click', (e) => {
+                        e.currentTarget.classList.add('selected');
+                        setTimeout(() => {
+                           navigateToTable(cleanName(table.name));
+                        }, 400);
+                    });
+                    suggestionsContainer.appendChild(item);
+                });
+            });
+
+            // --- Initial Render ---
+            renderMainGridButtons(tablesData);
+        });
+    </script>
+
+</body>
+</html>
+
