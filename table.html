@@ -1,3 +1,5 @@
+Bite teble number 2
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -682,7 +684,7 @@
                     button.addEventListener('click', (e) => {
                         e.currentTarget.classList.add('selected');
                         setTimeout(() => {
-                            window.open(table.link, '_blank');
+                            window.location.href = table.link;
                         }, 400);
                     });
                     buttonGrid.appendChild(button);
@@ -696,7 +698,7 @@
                     normalizeString(table.name) === normalizedTableName
                 );
                 if (exactMatch) {
-                    window.open(exactMatch.link, '_blank');
+                    window.location.href = exactMatch.link;
                 }
             }
 
@@ -776,4 +778,3 @@
 
 </body>
 </html>
-
