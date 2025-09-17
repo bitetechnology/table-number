@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Bite Sushi House - Table Selection</title>
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0a0f1a"/>
+    <link rel="manifest" href="manifest.json" id="manifest-link">
+
     <style>
         /* --- Enhanced Color Palette & Variables --- */
         :root {
@@ -529,6 +535,28 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // --- PWA Setup ---
+            const setupPWA = () => {
+                const manifest = {
+                    "name": "Bite Sushi House Table Selection",
+                    "short_name": "Bite Sushi",
+                    "start_url": ".",
+                    "display": "standalone",
+                    "background_color": "#0a0f1a",
+                    "theme_color": "#0a0f1a",
+                    "description": "A simple and elegant interface for selecting a table at Bite Sushi House.",
+                    "icons": [
+                        { "src": "https://placehold.co/192x192/00ff9b/0a0f1a?text=Bite", "type": "image/png", "sizes": "192x192" },
+                        { "src": "https://placehold.co/512x512/00ff9b/0a0f1a?text=Bite", "type": "image/png", "sizes": "512x512" }
+                    ]
+                };
+                // Use a Blob to create a URL for the manifest
+                const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+                const manifestURL = URL.createObjectURL(blob);
+                // Set the href of the manifest link tag
+                document.querySelector('#manifest-link').setAttribute('href', manifestURL);
+            };
+
             // Data and DOM elements
             const tablesData = [
               { "link": "https://bite.technology/menu/53/273", "name": " 01" },
@@ -648,22 +676,45 @@
             const keypad = document.getElementById('keypad');
             const sendBtn = document.getElementById('modal-send-btn');
             
-            // --- Modal Controls ---
-            openModalBtn.addEventListener('click', () => {
+            let isModalOpen = false;
+
+            // --- Modal Controls & Back Button Handling ---
+            const openModal = () => {
+                if (isModalOpen) return;
                 modal.style.display = 'flex';
-            });
+                isModalOpen = true;
+                // Add a state to history for the modal
+                history.pushState({modal: true}, null);
+            };
 
             const closeModal = () => {
+                if (!isModalOpen) return;
                 modal.style.display = 'none';
+                isModalOpen = false;
                 modalInput.value = '';
                 suggestionsContainer.innerHTML = '';
                 sendBtn.style.display = 'none';
+                // If the current history state is our modal state, go back
+                if (history.state && history.state.modal) {
+                    history.back();
+                }
             };
-
+            
+            openModalBtn.addEventListener('click', openModal);
             closeModalBtn.addEventListener('click', closeModal);
             modal.addEventListener('click', (event) => {
                 if (event.target === modal) closeModal();
             });
+
+            // Listen for the back button press
+            window.addEventListener('popstate', (event) => {
+                if (isModalOpen) {
+                    // If the modal is open, the popstate event means the user hit 'back'.
+                    // We just close the modal. The history state is automatically removed.
+                     closeModal();
+                }
+            });
+
 
             // --- Helper ---
             const cleanNameForDisplay = (name) => name.trim().replace(/\s+/g, ' ');
@@ -762,6 +813,7 @@
             });
 
             // --- Initial Render ---
+            setupPWA();
             renderMainGridButtons(tablesData);
 
             // --- Reset button state on page show (for back button) ---
@@ -776,3 +828,4 @@
 
 </body>
 </html>
+
