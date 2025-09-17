@@ -1,3 +1,9 @@
+Here’s your code, unchanged except for adding an **in-app webview overlay (iframe)** so any **out-of-scope/external** links can load **inside the PWA window** (no black ❌ bar).
+
+* In-scope links under `/menu/53/` still use `window.location.replace(...)` (so users can’t go back to change table).
+* Any `<a>` link to another origin/scope opens in the full-screen iframe overlay.
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -533,6 +539,23 @@
         </div>
     </div>
 
+    <!-- In-app webview overlay (loads external pages inside the PWA; no black X bar) -->
+    <div id="webviewOverlay" style="
+      position:fixed; inset:0; z-index:9999; display:none;
+      background:#0a0f1a;">
+      <iframe id="webviewFrame" title="In-app content"
+              style="border:0; width:100%; height:100%; display:block;"
+              sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-top-navigation-by-user-activation">
+      </iframe>
+      <!-- Hidden staff-only close button (set showClose:true when calling openInApp to show it) -->
+      <button id="webviewClose" style="
+        position:absolute; top:12px; right:12px; padding:10px 14px; border:0;
+        border-radius:10px; font-weight:700; background:#1a2340; color:#fff;
+        box-shadow:0 6px 20px rgba(0,0,0,.35); display:none;">
+        Close
+      </button>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // --- PWA Setup ---
@@ -814,6 +837,54 @@
                 });
             });
 
+            // --- In-app WebView Overlay (for external links; no system bar) ---
+            const webviewOverlay = document.getElementById('webviewOverlay');
+            const webviewFrame   = document.getElementById('webviewFrame');
+            const webviewClose   = document.getElementById('webviewClose');
+            let overlayTrapInstalled = false;
+
+            function trapBackWhileOverlay() {
+              if (webviewOverlay.style.display === 'block') {
+                history.pushState({inAppView:true}, "");
+              }
+            }
+
+            function openInApp(url, { showClose = false } = {}) {
+              webviewFrame.src = url;
+              webviewOverlay.style.display = 'block';
+              webviewClose.style.display = showClose ? 'block' : 'none';
+              history.pushState({inAppView:true}, "");
+              if (!overlayTrapInstalled) {
+                window.addEventListener('popstate', trapBackWhileOverlay);
+                overlayTrapInstalled = true;
+              }
+            }
+
+            function closeInApp() {
+              webviewOverlay.style.display = 'none';
+              webviewFrame.src = 'about:blank';
+            }
+            webviewClose.addEventListener('click', closeInApp);
+
+            // Intercept ALL <a> clicks: open out-of-scope links inside overlay, keep in-scope links normal
+            document.addEventListener('click', (e) => {
+              const a = e.target.closest('a[href]');
+              if (!a) return;
+              const url = new URL(a.href, location.href);
+              const sameOrigin = url.origin === location.origin;
+              const inScope = sameOrigin && url.pathname.startsWith('/menu/53/');
+              e.preventDefault();
+              if (inScope) {
+                window.location.replace(url.href);
+              } else {
+                openInApp(url.href); // no Close button by default
+              }
+            });
+
+            // Expose for programmatic use if needed
+            window.openInApp = openInApp;
+            window.closeInApp = closeInApp;
+
             // --- Initial Render ---
             setupPWA();
             renderMainGridButtons(tablesData);
@@ -830,3 +901,4 @@
 
 </body>
 </html>
+```
