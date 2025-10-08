@@ -1,10 +1,11 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="google" content="notranslate">
     <title>Bite Sushi House - Table Selection</title>
-    <!-- PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0a0f1a"/>
@@ -57,7 +58,7 @@
             padding: clamp(15px, 3vw, 30px);
             overflow-y: auto;
         }
-
+        
         /* --- Main Container --- */
         .container {
             width: 100%;
@@ -66,6 +67,18 @@
             border-radius: 24px;
             text-align: center;
             position: relative;
+            /* MODIFICATION: Hide the main container initially */
+            display: none;
+        }
+
+        .container.unlocked {
+             display: block;
+             animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
         }
 
         /* --- Enhanced Header --- */
@@ -475,10 +488,130 @@
                 max-width: 100%; /* Allow modal to shrink */
             }
         }
+        
+        /* --- MODIFICATION: PASSCODE LOCK STYLES --- */
+        #passcode-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 15, 26, 0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.4s ease-out;
+        }
+
+        #passcode-overlay.unlocked {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #passcode-content {
+            width: 100%;
+            max-width: 380px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        #passcode-content h2 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: var(--text-secondary);
+        }
+
+        #passcode-display {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .passcode-digit {
+            width: 20px;
+            height: 20px;
+            background: transparent;
+            border: 2px solid var(--border-primary);
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .passcode-digit.filled {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            transform: scale(1.1);
+        }
+
+        #passcode-display.shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        #passcode-keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .passcode-key {
+            padding: 20px 0;
+            font-size: 1.6rem;
+            font-weight: 600;
+            border-radius: 50%;
+            border: none;
+            background: var(--surface-primary);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .passcode-key:active {
+             background: var(--accent-primary);
+             color: var(--bg-primary);
+             transform: scale(0.95);
+        }
+
+        .passcode-key.delete {
+            grid-column: 3;
+            grid-row: 4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .passcode-key.zero {
+            grid-column: 2;
+            grid-row: 4;
+        }
 
     </style>
 </head>
 <body>
+
+    <div id="passcode-overlay">
+        <div id="passcode-content">
+            <h2>Enter Passcode</h2>
+            <div id="passcode-display">
+                <span class="passcode-digit"></span>
+                <span class="passcode-digit"></span>
+                <span class="passcode-digit"></span>
+                <span class="passcode-digit"></span>
+            </div>
+            <div id="passcode-keypad">
+                </div>
+        </div>
+    </div>
 
     <div class="container">
         <div class="header-section">
@@ -488,7 +621,6 @@
         <div id="button-grid"></div>
     </div>
 
-    <!-- Modal HTML -->
     <div id="table-modal" class="modal-overlay">
         <div class="modal-content">
             <button id="modal-close-btn">&times;</button>
@@ -535,294 +667,256 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // --- PWA Setup ---
-            const setupPWA = () => {
-                const manifest = {
-                    "name": "Bite Sushi House Table Selection",
-                    "short_name": "Bite Sushi",
-                    "start_url": ".",
-                    "display": "standalone",
-                    "background_color": "#0a0f1a",
-                    "theme_color": "#0a0f1a",
-                    "description": "A simple and elegant interface for selecting a table at Bite Sushi House.",
-                    "icons": [
-                        { "src": "https://placehold.co/192x192/00ff9b/0a0f1a?text=Bite", "type": "image/png", "sizes": "192x192" },
-                        { "src": "https://placehold.co/512x512/00ff9b/0a0f1a?text=Bite", "type": "image/png", "sizes": "512x512" }
-                    ]
-                };
-                // Use a Blob to create a URL for the manifest
-                const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-                const manifestURL = URL.createObjectURL(blob);
-                // Set the href of the manifest link tag
-                document.querySelector('#manifest-link').setAttribute('href', manifestURL);
-            };
-
-            // Data and DOM elements
-            const tablesData = [
-              { "link": "https://bite.technology/menu/53/273", "name": " 01" },
-              { "link": "https://bite.technology/menu/53/274", "name": "01 B" },
-              { "link": "https://bite.technology/menu/53/275", "name": "01 C" },
-              { "link": "https://bite.technology/menu/53/276", "name": "01 F" },
-              { "link": "https://bite.technology/menu/53/277", "name": "01 G" },
-              { "link": "https://bite.technology/menu/53/278", "name": " 02 " },
-              { "link": "https://bite.technology/menu/53/279", "name": "02 B" },
-              { "link": "https://bite.technology/menu/53/280", "name": "02 C" },
-              { "link": "https://bite.technology/menu/53/281", "name": "02 F" },
-              { "link": "https://bite.technology/menu/53/282", "name": "02 G" },
-              { "link": "https://bite.technology/menu/53/283", "name": "02 H" },
-              { "link": "https://bite.technology/menu/53/284", "name": " 03" },
-              { "link": "https://bite.technology/menu/53/285", "name": "03 B" },
-              { "link": "https://bite.technology/menu/53/286", "name": "03 C" },
-              { "link": "https://bite.technology/menu/53/287", "name": "03 F" },
-              { "link": "https://bite.technology/menu/53/288", "name": " 05" },
-              { "link": "https://bite.technology/menu/53/289", "name": "05 B" },
-              { "link": "https://bite.technology/menu/53/290", "name": "05 C" },
-              { "link": "https://bite.technology/menu/53/291", "name": "05 F" },
-              { "link": "https://bite.technology/menu/53/292", "name": "05 G" },
-              { "link": "https://bite.technology/menu/53/293", "name": " 06" },
-              { "link": "https://bite.technology/menu/53/294", "name": "06 B" },
-              { "link": "https://bite.technology/menu/53/295", "name": "06 C" },
-              { "link": "https://bite.technology/menu/53/296", "name": "06 F" },
-              { "link": "https://bite.technology/menu/53/297", "name": "06 G" },
-              { "link": "https://bite.technology/menu/53/298", "name": " 07" },
-              { "link": "https://bite.technology/menu/53/299", "name": "07 B" },
-              { "link": "https://bite.technology/menu/53/300", "name": "07 C" },
-              { "link": "https://bite.technology/menu/53/301", "name": "07 F" },
-              { "link": "https://bite.technology/menu/53/302", "name": "07 G" },
-              { "link": "https://bite.technology/menu/53/303", "name": " 08" },
-              { "link": "https://bite.technology/menu/53/304", "name": "08 B" },
-              { "link": "https://bite.technology/menu/53/305", "name": "08 C" },
-              { "link": "https://bite.technology/menu/53/306", "name": "08 F" },
-              { "link": "https://bite.technology/menu/53/307", "name": "08 G" },
-              { "link": "https://bite.technology/menu/53/308", "name": " 09" },
-              { "link": "https://bite.technology/menu/53/309", "name": "09 B" },
-              { "link": "https://bite.technology/menu/53/310", "name": "09 C" },
-              { "link": "https://bite.technology/menu/53/311", "name": "09 F" },
-              { "link": "https://bite.technology/menu/53/312", "name": "09 G" },
-              { "link": "https://bite.technology/menu/53/313", "name": " 10" },
-              { "link": "https://bite.technology/menu/53/314", "name": "10 B" },
-              { "link": "https://bite.technology/menu/53/315", "name": "10 C" },
-              { "link": "https://bite.technology/menu/53/316", "name": "10 F" },
-              { "link": "https://bite.technology/menu/53/317", "name": " 11" },
-              { "link": "https://bite.technology/menu/53/318", "name": "11 B" },
-              { "link": "https://bite.technology/menu/53/319", "name": "11 C" },
-              { "link": "https://bite.technology/menu/53/320", "name": "11 F" },
-              { "link": "https://bite.technology/menu/53/321", "name": " 15" },
-              { "link": "https://bite.technology/menu/53/322", "name": "15 B" },
-              { "link": "https://bite.technology/menu/53/323", "name": "15 B" },
-              { "link": "https://bite.technology/menu/53/324", "name": "15 C" },
-              { "link": "https://bite.technology/menu/53/325", "name": "15 G" },
-              { "link": "https://bite.technology/menu/53/326", "name": " 16" },
-              { "link": "https://bite.technology/menu/53/327", "name": "16 B" },
-              { "link": "https://bite.technology/menu/53/328", "name": "16 C" },
-              { "link": "https://bite.technology/menu/53/329", "name": "16 G" },
-              { "link": "https://bite.technology/menu/53/330", "name": " 18" },
-              { "link": "https://bite.technology/menu/53/331", "name": " 19" },
-              { "link": "https://bite.technology/menu/53/332", "name": " 20" },
-              { "link": "https://bite.technology/menu/53/333", "name": " 20" },
-              { "link": "https://bite.technology/menu/53/334", "name": "20 B" },
-              { "link": "https://bite.technology/menu/53/335", "name": " 21" },
-              { "link": "https://bite.technology/menu/53/336", "name": "21 B" },
-              { "link": "https://bite.technology/menu/53/337", "name": " 22" },
-              { "link": "https://bite.technology/menu/53/338", "name": "22 B" },
-              { "link": "https://bite.technology/menu/53/339", "name": "22 C" },
-              { "link": "https://bite.technology/menu/53/340", "name": " 23" },
-              { "link": "https://bite.technology/menu/53/341", "name": "23 B" },
-              { "link": "https://bite.technology/menu/53/342", "name": "23 C" },
-              { "link": "https://bite.technology/menu/53/343", "name": " 25" },
-              { "link": "https://bite.technology/menu/53/344", "name": "25 B" },
-              { "link": "https://bite.technology/menu/53/345", "name": " 26" },
-              { "link": "https://bite.technology/menu/53/346", "name": "26 B" },
-              { "link": "https://bite.technology/menu/53/347", "name": " 31" },
-              { "link": "https://bite.technology/menu/53/348", "name": "31 B" },
-              { "link": "https://bite.technology/menu/53/349", "name": "31 C" },
-              { "link": "https://bite.technology/menu/53/350", "name": " 32" },
-              { "link": "https://bite.technology/menu/53/351", "name": "32 B" },
-              { "link": "https://bite.technology/menu/53/352", "name": "32 C" },
-              { "link": "https://bite.technology/menu/53/353", "name": " 33" },
-              { "link": "https://bite.technology/menu/53/354", "name": "33 B" },
-              { "link": "https://bite.technology/menu/53/355", "name": "33 C" },
-              { "link": "https://bite.technology/menu/53/356", "name": " 35" },
-              { "link": "https://bite.technology/menu/53/357", "name": "35 B" },
-              { "link": "https://bite.technology/menu/53/358", "name": "35 C" },
-              { "link": "https://bite.technology/menu/53/359", "name": " 36" },
-              { "link": "https://bite.technology/menu/53/360", "name": "36 B" },
-              { "link": "https://bite.technology/menu/53/361", "name": "36 C" },
-              { "link": "https://bite.technology/menu/53/362", "name": " 37" },
-              { "link": "https://bite.technology/menu/53/6462", "name": "37 B" },
-              { "link": "https://bite.technology/menu/53/6553", "name": "37 C" },
-              { "link": "https://bite.technology/menu/53/6645", "name": "38 " },
-              { "link": "https://bite.technology/menu/53/6738", "name": "38 B" },
-              { "link": "https://bite.technology/menu/53/6832", "name": "38 C" },
-              { "link": "https://bite.technology/menu/53/6927", "name": " 39" },
-              { "link": "https://bite.technology/menu/53/7023", "name": "39 B" },
-              { "link": "https://bite.technology/menu/53/7120", "name": " 40" },
-              { "link": "https://bite.technology/menu/53/7218", "name": "40 B" },
-              { "link": "https://bite.technology/menu/53/7317", "name": "40 C" },
-              { "link": "https://bite.technology/menu/53/7417", "name": " 41" },
-              { "link": "https://bite.technology/menu/53/7518", "name": "41 B" },
-              { "link": "https://bite.technology/menu/53/7620", "name": "41 C" },
-              { "link": "https://bite.technology/menu/53/7723", "name": " 42" },
-              { "link": "https://bite.technology/menu/53/7827", "name": "42 B" },
-              { "link": "https://bite.technology/menu/53/7932", "name": "42 C" }
-            ];
-
-            const buttonGrid = document.getElementById('button-grid');
-            const modal = document.getElementById('table-modal');
-            const openModalBtn = document.getElementById('open-modal-btn');
-            const closeModalBtn = document.getElementById('modal-close-btn');
-            const modalInput = document.getElementById('modal-table-input');
-            const suggestionsContainer = document.getElementById('modal-suggestions');
-            const keypad = document.getElementById('keypad');
-            const sendBtn = document.getElementById('modal-send-btn');
             
-            let isModalOpen = false;
+            // --- MODIFICATION: PASSCODE LOCK LOGIC ---
+            const CORRECT_PASSCODE = '1234';
+            let enteredPasscode = '';
 
-            // --- Modal Controls & Back Button Handling ---
-            const openModal = () => {
-                if (isModalOpen) return;
-                modal.style.display = 'flex';
-                isModalOpen = true;
-                // Add a state to history for the modal
-                history.pushState({modal: true}, null);
-            };
-
-            const closeModal = () => {
-                if (!isModalOpen) return;
-                modal.style.display = 'none';
-                isModalOpen = false;
-                modalInput.value = '';
-                suggestionsContainer.innerHTML = '';
-                sendBtn.style.display = 'none';
-                // If the current history state is our modal state, go back
-                if (history.state && history.state.modal) {
-                    history.back();
-                }
-            };
+            const passcodeOverlay = document.getElementById('passcode-overlay');
+            const passcodeDisplay = document.getElementById('passcode-display');
+            const passcodeDigits = document.querySelectorAll('.passcode-digit');
+            const passcodeKeypad = document.getElementById('passcode-keypad');
+            const mainContainer = document.querySelector('.container');
             
-            openModalBtn.addEventListener('click', openModal);
-            closeModalBtn.addEventListener('click', closeModal);
-            modal.addEventListener('click', (event) => {
-                if (event.target === modal) closeModal();
-            });
-
-            // Listen for the back button press
-            window.addEventListener('popstate', (event) => {
-                if (isModalOpen) {
-                    // If the modal is open, the popstate event means the user hit 'back'.
-                    // We just close the modal. The history state is automatically removed.
-                     closeModal();
+            function createPasscodeKeypad() {
+                // Create number keys 1-9
+                for (let i = 1; i <= 9; i++) {
+                    const key = document.createElement('button');
+                    key.className = 'passcode-key';
+                    key.textContent = i;
+                    key.dataset.key = i;
+                    passcodeKeypad.appendChild(key);
                 }
-            });
+                // Create 0 and delete keys
+                const zeroKey = document.createElement('button');
+                zeroKey.className = 'passcode-key zero';
+                zeroKey.textContent = '0';
+                zeroKey.dataset.key = '0';
+                passcodeKeypad.appendChild(zeroKey);
+                
+                const deleteKey = document.createElement('button');
+                deleteKey.className = 'passcode-key delete';
+                deleteKey.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>`;
+                deleteKey.dataset.key = 'delete';
+                passcodeKeypad.appendChild(deleteKey);
+            }
 
-
-            // --- Helper ---
-            const cleanNameForDisplay = (name) => name.trim().replace(/\s+/g, ' ');
-            const normalizeString = (str) => str.trim().replace(/\s+/g, '').toLowerCase();
-
-
-            // --- Main Grid Buttons ---
-            function renderMainGridButtons(tables) {
-                buttonGrid.innerHTML = '';
-                tables.forEach(table => {
-                    const button = document.createElement('button');
-                    button.className = 'table-btn';
-                    const span = document.createElement('span');
-                    span.textContent = cleanNameForDisplay(table.name);
-                    button.appendChild(span);
-                    button.addEventListener('click', (e) => {
-                        e.currentTarget.classList.add('selected');
-                        setTimeout(() => {
-                            window.location.href = table.link;
-                        }, 400);
-                    });
-                    buttonGrid.appendChild(button);
+            function updatePasscodeDisplay() {
+                passcodeDigits.forEach((digit, index) => {
+                    if (index < enteredPasscode.length) {
+                        digit.classList.add('filled');
+                    } else {
+                        digit.classList.remove('filled');
+                    }
                 });
             }
 
-            // --- Modal Suggestions & Navigation ---
-            function navigateToTable(tableName) {
-                const normalizedTableName = normalizeString(tableName);
-                const exactMatch = tablesData.find(table => 
-                    normalizeString(table.name) === normalizedTableName
-                );
-                if (exactMatch) {
-                    window.location.href = exactMatch.link;
-                }
-            }
-
-            // --- Keypad Logic ---
-            keypad.addEventListener('click', (event) => {
-                const keyButton = event.target.closest('.keypad-btn');
-                if (!keyButton) return;
-                
-                const key = keyButton.dataset.key;
-                
-                if (key === 'backspace') {
-                    modalInput.value = modalInput.value.slice(0, -1);
+            function checkPasscode() {
+                if (enteredPasscode === CORRECT_PASSCODE) {
+                    // Unlock the app
+                    passcodeOverlay.classList.add('unlocked');
+                    mainContainer.classList.add('unlocked');
+                    setTimeout(() => {
+                        passcodeOverlay.style.display = 'none';
+                        initializeApp(); // Initialize the main app logic
+                    }, 400);
                 } else {
-                    modalInput.value += key;
+                    // Incorrect passcode
+                    passcodeDisplay.classList.add('shake');
+                    setTimeout(() => {
+                        passcodeDisplay.classList.remove('shake');
+                        enteredPasscode = '';
+                        updatePasscodeDisplay();
+                    }, 600);
+                }
+            }
+
+            passcodeKeypad.addEventListener('click', (e) => {
+                const key = e.target.closest('.passcode-key');
+                if (!key) return;
+
+                const keyValue = key.dataset.key;
+
+                if (keyValue === 'delete') {
+                    enteredPasscode = enteredPasscode.slice(0, -1);
+                } else if (enteredPasscode.length < 4) {
+                    enteredPasscode += keyValue;
                 }
                 
-                // Trigger input event to update suggestions
-                modalInput.dispatchEvent(new Event('input', { bubbles: true }));
+                updatePasscodeDisplay();
+
+                if (enteredPasscode.length === 4) {
+                    checkPasscode();
+                }
             });
-            
-            // --- Send Button Logic ---
-             sendBtn.addEventListener('click', () => {
-                const searchTerm = modalInput.value.trim();
-                if (searchTerm) {
-                    navigateToTable(searchTerm);
-                }
-            });
 
-            // --- Suggestion Logic (attached to modal input) ---
-            modalInput.addEventListener('input', () => {
-                const normalizedSearchTerm = normalizeString(modalInput.value);
-                suggestionsContainer.innerHTML = '';
-                sendBtn.style.display = 'none'; // Hide by default
+            createPasscodeKeypad(); // Generate the keypad on load
 
-                if (normalizedSearchTerm.length === 0) return;
+            // --- MODIFICATION: WRAP ORIGINAL CODE IN A FUNCTION ---
+            function initializeApp() {
+                // --- PWA Setup ---
+                const setupPWA = () => {
+                    const manifest = {
+                        "name": "Bite Sushi House Table Selection",
+                        "short_name": "Bite Sushi",
+                        "start_url": ".",
+                        "display": "standalone",
+                        "background_color": "#0a0f1a",
+                        "theme_color": "#0a0f1a",
+                        "description": "A simple and elegant interface for selecting a table at Bite Sushi House.",
+                        "icons": [
+                            { "src": "https://placehold.co/192x192/00ff9b/0a0f1a?text=Bite", "type": "image/png", "sizes": "192x192" },
+                            { "src": "https://placehold.co/512x512/00ff9b/0a0f1a?text=Bite", "type": "image/png", "sizes": "512x512" }
+                        ]
+                    };
+                    const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+                    const manifestURL = URL.createObjectURL(blob);
+                    document.querySelector('#manifest-link').setAttribute('href', manifestURL);
+                };
 
-                // Find all tables that start with the search term
-                const potentialMatches = tablesData.filter(table => 
-                    normalizeString(table.name).startsWith(normalizedSearchTerm)
-                );
+                // Data and DOM elements
+                const tablesData = [
+                  { "link": "https://bite.technology/menu/53/273", "name": " 01" }, { "link": "https://bite.technology/menu/53/274", "name": "01 B" }, { "link": "https://bite.technology/menu/53/275", "name": "01 C" }, { "link": "https://bite.technology/menu/53/276", "name": "01 F" }, { "link": "https://bite.technology/menu/53/277", "name": "01 G" }, { "link": "https://bite.technology/menu/53/278", "name": " 02 " }, { "link": "https://bite.technology/menu/53/279", "name": "02 B" }, { "link": "https://bite.technology/menu/53/280", "name": "02 C" }, { "link": "https://bite.technology/menu/53/281", "name": "02 F" }, { "link": "https://bite.technology/menu/53/282", "name": "02 G" }, { "link": "https://bite.technology/menu/53/283", "name": "02 H" }, { "link": "https://bite.technology/menu/53/284", "name": " 03" }, { "link": "https://bite.technology/menu/53/285", "name": "03 B" }, { "link": "https://bite.technology/menu/53/286", "name": "03 C" }, { "link": "https://bite.technology/menu/53/287", "name": "03 F" }, { "link": "https://bite.technology/menu/53/288", "name": " 05" }, { "link": "https://bite.technology/menu/53/289", "name": "05 B" }, { "link": "https://bite.technology/menu/53/290", "name": "05 C" }, { "link": "https://bite.technology/menu/53/291", "name": "05 F" }, { "link": "https://bite.technology/menu/53/292", "name": "05 G" }, { "link": "https://bite.technology/menu/53/293", "name": " 06" }, { "link": "https://bite.technology/menu/53/294", "name": "06 B" }, { "link": "https://bite.technology/menu/53/295", "name": "06 C" }, { "link": "https://bite.technology/menu/53/296", "name": "06 F" }, { "link": "https://bite.technology/menu/53/297", "name": "06 G" }, { "link": "https://bite.technology/menu/53/298", "name": " 07" }, { "link": "https://bite.technology/menu/53/299", "name": "07 B" }, { "link": "https://bite.technology/menu/53/300", "name": "07 C" }, { "link": "https://bite.technology/menu/53/301", "name": "07 F" }, { "link": "https://bite.technology/menu/53/302", "name": "07 G" }, { "link": "https://bite.technology/menu/53/303", "name": " 08" }, { "link": "https://bite.technology/menu/53/304", "name": "08 B" }, { "link": "https://bite.technology/menu/53/305", "name": "08 C" }, { "link": "https://bite.technology/menu/53/306", "name": "08 F" }, { "link": "https://bite.technology/menu/53/307", "name": "08 G" }, { "link": "https://bite.technology/menu/53/308", "name": " 09" }, { "link": "https://bite.technology/menu/53/309", "name": "09 B" }, { "link": "https://bite.technology/menu/53/310", "name": "09 C" }, { "link": "https://bite.technology/menu/53/311", "name": "09 F" }, { "link": "https://bite.technology/menu/53/312", "name": "09 G" }, { "link": "https://bite.technology/menu/53/313", "name": " 10" }, { "link": "https://bite.technology/menu/53/314", "name": "10 B" }, { "link": "https://bite.technology/menu/53/315", "name": "10 C" }, { "link": "https://bite.technology/menu/53/316", "name": "10 F" }, { "link": "https://bite.technology/menu/53/317", "name": " 11" }, { "link": "https://bite.technology/menu/53/318", "name": "11 B" }, { "link": "https://bite.technology/menu/53/319", "name": "11 C" }, { "link": "https://bite.technology/menu/53/320", "name": "11 F" }, { "link": "https://bite.technology/menu/53/321", "name": " 15" }, { "link": "https://bite.technology/menu/53/322", "name": "15 B" }, { "link": "https://bite.technology/menu/53/323", "name": "15 B" }, { "link": "https://bite.technology/menu/53/324", "name": "15 C" }, { "link": "https://bite.technology/menu/53/325", "name": "15 G" }, { "link": "https://bite.technology/menu/53/326", "name": " 16" }, { "link": "https://bite.technology/menu/53/327", "name": "16 B" }, { "link": "https://bite.technology/menu/53/328", "name": "16 C" }, { "link": "https://bite.technology/menu/53/329", "name": "16 G" }, { "link": "https://bite.technology/menu/53/330", "name": " 18" }, { "link": "https://bite.technology/menu/53/331", "name": " 19" }, { "link": "https://bite.technology/menu/53/332", "name": " 20" }, { "link": "https://bite.technology/menu/53/333", "name": " 20" }, { "link": "https://bite.technology/menu/53/334", "name": "20 B" }, { "link": "https://bite.technology/menu/53/335", "name": " 21" }, { "link": "https://bite.technology/menu/53/336", "name": "21 B" }, { "link": "https://bite.technology/menu/53/337", "name": " 22" }, { "link": "https://bite.technology/menu/53/338", "name": "22 B" }, { "link": "https://bite.technology/menu/53/339", "name": "22 C" }, { "link": "https://bite.technology/menu/53/340", "name": " 23" }, { "link": "https://bite.technology/menu/53/341", "name": "23 B" }, { "link": "https://bite.technology/menu/53/342", "name": "23 C" }, { "link": "https://bite.technology/menu/53/343", "name": " 25" }, { "link": "https://bite.technology/menu/53/344", "name": "25 B" }, { "link": "https://bite.technology/menu/53/345", "name": " 26" }, { "link": "https://bite.technology/menu/53/346", "name": "26 B" }, { "link": "https://bite.technology/menu/53/347", "name": " 31" }, { "link": "https://bite.technology/menu/53/348", "name": "31 B" }, { "link": "https://bite.technology/menu/53/349", "name": "31 C" }, { "link": "https://bite.technology/menu/53/350", "name": " 32" }, { "link": "https://bite.technology/menu/53/351", "name": "32 B" }, { "link": "https://bite.technology/menu/53/352", "name": "32 C" }, { "link": "https://bite.technology/menu/53/353", "name": " 33" }, { "link": "https://bite.technology/menu/53/354", "name": "33 B" }, { "link": "https://bite.technology/menu/53/355", "name": "33 C" }, { "link": "https://bite.technology/menu/53/356", "name": " 35" }, { "link": "https://bite.technology/menu/53/357", "name": "35 B" }, { "link": "https://bite.technology/menu/53/358", "name": "35 C" }, { "link": "https://bite.technology/menu/53/359", "name": " 36" }, { "link": "https://bite.technology/menu/53/360", "name": "36 B" }, { "link": "https://bite.technology/menu/53/361", "name": "36 C" }, { "link": "https://bite.technology/menu/53/362", "name": " 37" }, { "link": "https://bite.technology/menu/53/6462", "name": "37 B" }, { "link": "https://bite.technology/menu/53/6553", "name": "37 C" }, { "link": "https://bite.technology/menu/53/6645", "name": "38 " }, { "link": "https://bite.technology/menu/53/6738", "name": "38 B" }, { "link": "https://bite.technology/menu/53/6832", "name": "38 C" }, { "link": "https://bite.technology/menu/53/6927", "name": " 39" }, { "link": "https://bite.technology/menu/53/7023", "name": "39 B" }, { "link": "https://bite.technology/menu/53/7120", "name": " 40" }, { "link": "https://bite.technology/menu/53/7218", "name": "40 B" }, { "link": "https://bite.technology/menu/53/7317", "name": "40 C" }, { "link": "https://bite.technology/menu/53/7417", "name": " 41" }, { "link": "https://bite.technology/menu/53/7518", "name": "41 B" }, { "link": "https://bite.technology/menu/53/7620", "name": "41 C" }, { "link": "https://bite.technology/menu/53/7723", "name": " 42" }, { "link": "https://bite.technology/menu/53/7827", "name": "42 B" }, { "link": "https://bite.technology/menu/53/7932", "name": "42 C" }
+                ];
+
+                const buttonGrid = document.getElementById('button-grid');
+                const modal = document.getElementById('table-modal');
+                const openModalBtn = document.getElementById('open-modal-btn');
+                const closeModalBtn = document.getElementById('modal-close-btn');
+                const modalInput = document.getElementById('modal-table-input');
+                const suggestionsContainer = document.getElementById('modal-suggestions');
+                const keypad = document.getElementById('keypad');
+                const sendBtn = document.getElementById('modal-send-btn');
                 
-                // If there is ONLY ONE potential match, AND it's an exact match, show the send button.
-                if (potentialMatches.length === 1 && normalizeString(potentialMatches[0].name) === normalizedSearchTerm) {
-                    sendBtn.style.display = 'block';
-                }
+                let isModalOpen = false;
 
-                const filteredTables = potentialMatches;
+                // --- Modal Controls & Back Button Handling ---
+                const openModal = () => {
+                    if (isModalOpen) return;
+                    modal.style.display = 'flex';
+                    isModalOpen = true;
+                    history.pushState({modal: true}, null);
+                };
+
+                const closeModal = () => {
+                    if (!isModalOpen) return;
+                    modal.style.display = 'none';
+                    isModalOpen = false;
+                    modalInput.value = '';
+                    suggestionsContainer.innerHTML = '';
+                    sendBtn.style.display = 'none';
+                    if (history.state && history.state.modal) {
+                        history.back();
+                    }
+                };
                 
-                filteredTables.slice(0, 5).forEach(table => { // Increased suggestions to 5
-                    if (normalizeString(table.name) === normalizedSearchTerm) return; // Don't show exact match in suggestions
+                openModalBtn.addEventListener('click', openModal);
+                closeModalBtn.addEventListener('click', closeModal);
+                modal.addEventListener('click', (event) => {
+                    if (event.target === modal) closeModal();
+                });
 
-                    const item = document.createElement('div');
-                    item.className = 'suggestion-item';
-                    item.textContent = cleanNameForDisplay(table.name);
-                    item.addEventListener('click', (e) => {
-                        e.currentTarget.classList.add('selected');
-                        setTimeout(() => {
-                           navigateToTable(cleanNameForDisplay(table.name));
-                        }, 400);
+                window.addEventListener('popstate', (event) => {
+                    if (isModalOpen) {
+                        closeModal();
+                    }
+                });
+
+                // --- Helper ---
+                const cleanNameForDisplay = (name) => name.trim().replace(/\s+/g, ' ');
+                const normalizeString = (str) => str.trim().replace(/\s+/g, '').toLowerCase();
+
+                // --- Main Grid Buttons ---
+                function renderMainGridButtons(tables) {
+                    buttonGrid.innerHTML = '';
+                    tables.forEach(table => {
+                        const button = document.createElement('button');
+                        button.className = 'table-btn';
+                        const span = document.createElement('span');
+                        span.textContent = cleanNameForDisplay(table.name);
+                        button.appendChild(span);
+                        button.addEventListener('click', (e) => {
+                            e.currentTarget.classList.add('selected');
+                            setTimeout(() => {
+                                window.location.href = table.link;
+                            }, 400);
+                        });
+                        buttonGrid.appendChild(button);
                     });
-                    suggestionsContainer.appendChild(item);
-                });
-            });
+                }
 
-            // --- Initial Render ---
-            setupPWA();
-            renderMainGridButtons(tablesData);
+                // --- Modal Suggestions & Navigation ---
+                function navigateToTable(tableName) {
+                    const normalizedTableName = normalizeString(tableName);
+                    const exactMatch = tablesData.find(table => 
+                        normalizeString(table.name) === normalizedTableName
+                    );
+                    if (exactMatch) {
+                        window.location.href = exactMatch.link;
+                    }
+                }
 
-            // --- Reset button state on page show (for back button) ---
-            window.addEventListener('pageshow', function(event) {
-                const selectedButtons = document.querySelectorAll('.selected');
-                selectedButtons.forEach(button => {
-                    button.classList.remove('selected');
+                // --- Keypad Logic ---
+                keypad.addEventListener('click', (event) => {
+                    const keyButton = event.target.closest('.keypad-btn');
+                    if (!keyButton) return;
+                    const key = keyButton.dataset.key;
+                    if (key === 'backspace') {
+                        modalInput.value = modalInput.value.slice(0, -1);
+                    } else {
+                        modalInput.value += key;
+                    }
+                    modalInput.dispatchEvent(new Event('input', { bubbles: true }));
                 });
-            });
+                
+                // --- Send Button Logic ---
+                sendBtn.addEventListener('click', () => {
+                    const searchTerm = modalInput.value.trim();
+                    if (searchTerm) {
+                        navigateToTable(searchTerm);
+                    }
+                });
+
+                // --- Suggestion Logic (attached to modal input) ---
+                modalInput.addEventListener('input', () => {
+                    const normalizedSearchTerm = normalizeString(modalInput.value);
+                    suggestionsContainer.innerHTML = '';
+                    sendBtn.style.display = 'none';
+                    if (normalizedSearchTerm.length === 0) return;
+                    const potentialMatches = tablesData.filter(table => 
+                        normalizeString(table.name).startsWith(normalizedSearchTerm)
+                    );
+                    if (potentialMatches.length === 1 && normalizeString(potentialMatches[0].name) === normalizedSearchTerm) {
+                        sendBtn.style.display = 'block';
+                    }
+                    const filteredTables = potentialMatches;
+                    filteredTables.slice(0, 5).forEach(table => {
+                        if (normalizeString(table.name) === normalizedSearchTerm) return;
+                        const item = document.createElement('div');
+                        item.className = 'suggestion-item';
+                        item.textContent = cleanNameForDisplay(table.name);
+                        item.addEventListener('click', (e) => {
+                            e.currentTarget.classList.add('selected');
+                            setTimeout(() => {
+                               navigateToTable(cleanNameForDisplay(table.name));
+                            }, 400);
+                        });
+                        suggestionsContainer.appendChild(item);
+                    });
+                });
+
+                // --- Initial Render ---
+                setupPWA();
+                renderMainGridButtons(tablesData);
+
+                window.addEventListener('pageshow', function(event) {
+                    const selectedButtons = document.querySelectorAll('.selected');
+                    selectedButtons.forEach(button => {
+                        button.classList.remove('selected');
+                    });
+                });
+            } // End of initializeApp function
+
         });
     </script>
 
