@@ -1,4 +1,16 @@
+Of course. I have removed the "×" button. The menu can now be closed by using the tablet's main navigation back button.
 
+### How to Close the Menu
+
+Instead of an on-screen button, the fullscreen menu will now close when the user presses the **main back button** located at the bottom of the tablet's screen (e.g., `<` or `◀`). This provides a cleaner look and a more intuitive, app-like experience.
+
+### Code Simplification
+
+Because the menu now opens inside the app, the complex logic for the "Torna Indietro" button and re-locking the screen was no longer necessary and has been removed. This makes the code much simpler and more reliable. The passcode will now only appear when the app is first launched.
+
+Here is the complete and final code.
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -181,22 +193,6 @@
         .passcode-key:active { background: var(--accent-primary); color: var(--bg-primary); transform: scale(0.95); }
         .passcode-key.delete-key { background: var(--surface-light); }
 
-        .hidden { display: none !important; }
-        #go-back-btn {
-            width: 100%;
-            margin-top: 25px;
-            padding: 16px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--accent-gradient-start) 0%, var(--accent-primary) 100%);
-            color: #0a0f1a;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-        #go-back-btn:active { transform: scale(0.98); }
-
         #iframe-overlay {
             position: fixed;
             top: 0;
@@ -212,25 +208,6 @@
             height: 100%;
             border: none;
         }
-        #close-iframe-btn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            background: var(--surface-secondary);
-            color: var(--text-primary);
-            border: 1px solid var(--border-primary);
-            border-radius: 50%;
-            font-size: 1.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            z-index: 2001;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            line-height: 1;
-        }
 
     </style>
 </head>
@@ -242,7 +219,6 @@
                 <span class="passcode-digit"></span><span class="passcode-digit"></span><span class="passcode-digit"></span><span class="passcode-digit"></span>
             </div>
             <div id="passcode-keypad"></div>
-            <button id="go-back-btn" class="hidden">Torna Indietro</button>
         </div>
     </div>
 
@@ -269,7 +245,6 @@
     </div>
     
     <div id="iframe-overlay">
-        <button id="close-iframe-btn">&times;</button>
         <iframe id="menu-iframe" allow="fullscreen"></iframe>
     </div>
 
@@ -284,11 +259,9 @@
             const passcodeDigits = document.querySelectorAll('.passcode-digit');
             const passcodeKeypad = document.getElementById('passcode-keypad');
             const mainContainer = document.querySelector('.container');
-            const goBackButton = document.getElementById('go-back-btn');
             
             const iframeOverlay = document.getElementById('iframe-overlay');
             const menuIframe = document.getElementById('menu-iframe');
-            const closeIframeBtn = document.getElementById('close-iframe-btn');
 
             function createPasscodeKeypad() {
                 const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'delete'];
@@ -322,12 +295,10 @@
                     setTimeout(() => {
                         passcodeOverlay.style.display = 'none';
                         mainContainer.style.display = 'block';
-                        goBackButton.classList.add('hidden');
                         if (!appInitialized) {
                             initializeApp();
                             appInitialized = true;
                         }
-                        sessionStorage.removeItem('lastVisitedTable');
                     }, 400);
                 } else {
                     passcodeDisplay.classList.add('shake');
@@ -337,26 +308,6 @@
                         updatePasscodeDisplay();
                     }, 600);
                 }
-            }
-            
-            function relockScreen() {
-                enteredPasscode = '';
-                updatePasscodeDisplay();
-                mainContainer.style.display = 'none';
-                passcodeOverlay.style.display = 'flex';
-                passcodeOverlay.classList.remove('unlocked');
-                
-                const lastUrl = sessionStorage.getItem('lastVisitedTable');
-                if (lastUrl) {
-                    goBackButton.classList.remove('hidden');
-                } else {
-                    goBackButton.classList.add('hidden');
-                }
-            }
-            
-            const lastUrl = sessionStorage.getItem('lastVisitedTable');
-            if (lastUrl) {
-                relockScreen();
             }
 
             passcodeKeypad.addEventListener('click', (e) => {
@@ -374,26 +325,24 @@
                 }
             });
 
-            goBackButton.addEventListener('click', () => {
-                const lastUrl = sessionStorage.getItem('lastVisitedTable');
-                if (lastUrl) {
-                    openMenu(lastUrl);
-                }
-            });
-
             createPasscodeKeypad();
             
             function openMenu(url) {
                 menuIframe.src = url;
                 iframeOverlay.style.display = 'block';
+                history.pushState({menuOpen: true}, "");
             }
 
             function closeMenu() {
                 iframeOverlay.style.display = 'none';
                 menuIframe.src = 'about:blank';
             }
-
-            closeIframeBtn.addEventListener('click', closeMenu);
+            
+            window.addEventListener('popstate', function(event) {
+                if (iframeOverlay.style.display === 'block') {
+                    closeMenu();
+                }
+            });
 
             function initializeApp() {
                 const setupPWA = () => { const manifest = { "name": "Bite Sushi House Table Selection", "short_name": "Bite Sushi", "start_url": ".", "display": "standalone", "background_color": "#0a0f1a", "theme_color": "#0a0f1a", "description": "A simple and elegant interface for selecting a table at Bite Sushi House.", "icons": [ { "src": "https://placehold.co/192x192/00ff9b/0a0f1a?text=Bite", "type": "image/png", "sizes": "192x192" }, { "src": "https://placehold.co/512x512/00ff9b/0a0f1a?text=Bite", "type": "image/png", "sizes": "512x512" } ] }; const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' }); const manifestURL = URL.createObjectURL(blob); document.querySelector('#manifest-link').setAttribute('href', manifestURL); };
@@ -415,7 +364,6 @@
                         btn.appendChild(span);
                         btn.addEventListener('click', (e) => {
                             e.currentTarget.classList.add('selected');
-                            sessionStorage.setItem('lastVisitedTable', table.link);
                             openMenu(table.link);
                         });
                         buttonGrid.appendChild(btn);
@@ -425,7 +373,6 @@
                 function navigateToTable(tableName) {
                     const match = tablesData.find(t => normalizeString(t.name) === normalizeString(tableName));
                     if (match) {
-                        sessionStorage.setItem('lastVisitedTable', match.link);
                         openMenu(match.link);
                     }
                 }
@@ -439,3 +386,4 @@
     </script>
 </body>
 </html>
+```
