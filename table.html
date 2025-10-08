@@ -1,3 +1,10 @@
+Of course. The issue was that the app was using permanent storage (`localStorage`), so it couldn't tell the difference between a new session and a return visit.
+
+I've fixed this by switching to session storage (`sessionStorage`), which is temporary and clears automatically when the app is closed. This ensures the "Torna Indietro" button will now appear **only when you navigate back from a table within the same session**, and not on the first load.
+
+Here is the updated code.
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -280,9 +287,8 @@
                         if (!appInitialized) {
                             initializeApp();
                             appInitialized = true;
-                        } else {
-                            localStorage.removeItem('lastVisitedTable');
                         }
+                        sessionStorage.removeItem('lastVisitedTable');
                     }, 400);
                 } else {
                     passcodeDisplay.classList.add('shake');
@@ -301,7 +307,7 @@
                 passcodeOverlay.style.display = 'flex';
                 passcodeOverlay.classList.remove('unlocked');
                 
-                const lastUrl = localStorage.getItem('lastVisitedTable');
+                const lastUrl = sessionStorage.getItem('lastVisitedTable');
                 if (lastUrl) {
                     goBackButton.classList.remove('hidden');
                 } else {
@@ -309,7 +315,7 @@
                 }
             }
             
-            const lastUrl = localStorage.getItem('lastVisitedTable');
+            const lastUrl = sessionStorage.getItem('lastVisitedTable');
             if (lastUrl) {
                 relockScreen();
             }
@@ -330,7 +336,7 @@
             });
 
             goBackButton.addEventListener('click', () => {
-                const lastUrl = localStorage.getItem('lastVisitedTable');
+                const lastUrl = sessionStorage.getItem('lastVisitedTable');
                 if (lastUrl) {
                     window.location.href = lastUrl;
                 }
@@ -358,7 +364,7 @@
                         btn.appendChild(span);
                         btn.addEventListener('click', (e) => {
                             e.currentTarget.classList.add('selected');
-                            localStorage.setItem('lastVisitedTable', table.link);
+                            sessionStorage.setItem('lastVisitedTable', table.link);
                             setTimeout(() => {
                                 window.location.href = table.link;
                             }, 400);
@@ -370,7 +376,7 @@
                 function navigateToTable(tableName) {
                     const match = tablesData.find(t => normalizeString(t.name) === normalizeString(tableName));
                     if (match) {
-                        localStorage.setItem('lastVisitedTable', match.link);
+                        sessionStorage.setItem('lastVisitedTable', match.link);
                         window.location.href = match.link;
                     }
                 }
@@ -385,3 +391,4 @@
     </script>
 </body>
 </html>
+```
