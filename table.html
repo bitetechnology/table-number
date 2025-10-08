@@ -17,6 +17,7 @@
             --surface-primary: #141b2e;
             --surface-secondary: #1a2340;
             --surface-tertiary: #2a3754;
+            --surface-light: #1f2942;
             --accent-primary: #00ff9b;
             --accent-secondary: #30ffad; 
             --accent-gradient-start: #00e68a;
@@ -176,10 +177,9 @@
         #passcode-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .passcode-key { width: 70px; height: 70px; font-size: 1.8rem; font-weight: 600; border-radius: 50%; border: none; background: var(--surface-primary); color: var(--text-primary); cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
         .passcode-key:active { background: var(--accent-primary); color: var(--bg-primary); transform: scale(0.95); }
+        .passcode-key.delete-key { background: var(--surface-light); }
 
-        .hidden {
-            display: none !important;
-        }
+        .hidden { display: none !important; }
         #go-back-btn {
             width: 100%;
             margin-top: 25px;
@@ -193,9 +193,7 @@
             cursor: pointer;
             transition: transform 0.2s ease;
         }
-        #go-back-btn:active {
-            transform: scale(0.98);
-        }
+        #go-back-btn:active { transform: scale(0.98); }
 
     </style>
 </head>
@@ -204,10 +202,7 @@
         <div id="passcode-content">
             <h2>Enter Passcode</h2>
             <div id="passcode-display">
-                <span class="passcode-digit"></span>
-                <span class="passcode-digit"></span>
-                <span class="passcode-digit"></span>
-                <span class="passcode-digit"></span>
+                <span class="passcode-digit"></span><span class="passcode-digit"></span><span class="passcode-digit"></span><span class="passcode-digit"></span>
             </div>
             <div id="passcode-keypad"></div>
             <button id="go-back-btn" class="hidden">Torna Indietro</button>
@@ -256,7 +251,8 @@
                     const key = document.createElement('button');
                     key.className = 'passcode-key';
                     if (k === 'delete') {
-                        key.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>`;
+                        key.classList.add('delete-key');
+                        key.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>`;
                         key.dataset.key = 'delete';
                     } else if (k === '') {
                         key.style.visibility = 'hidden';
@@ -284,6 +280,8 @@
                         if (!appInitialized) {
                             initializeApp();
                             appInitialized = true;
+                        } else {
+                            localStorage.removeItem('lastVisitedTable');
                         }
                     }, 400);
                 } else {
@@ -310,12 +308,11 @@
                     goBackButton.classList.add('hidden');
                 }
             }
-
-            window.addEventListener('focus', function() {
-                if (appInitialized) {
-                   relockScreen();
-                }
-            });
+            
+            const lastUrl = localStorage.getItem('lastVisitedTable');
+            if (lastUrl) {
+                relockScreen();
+            }
 
             passcodeKeypad.addEventListener('click', (e) => {
                 const key = e.target.closest('.passcode-key');
