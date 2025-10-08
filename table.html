@@ -1,3 +1,41 @@
+Of course. I can help with both of those issues.
+
+You are correct on both points. The Google Translate pop-up appears on the external menu page, and there was a bug in the code that prevented the main page from reappearing correctly after you re-entered the password.
+
+Here’s a breakdown of the fixes:
+
+-----
+
+### 1\. Google Translate Issue
+
+The reason the translate pop-up still appears is that it's happening on the **external menu website** (`bite.technology`), not on your password/button page. My code can only control your page, not other websites.
+
+The good news is you can easily turn this feature off directly on the tablet. It's a browser setting.
+
+#### How to Disable Translation on the Tablet:
+
+1.  Open the **Chrome** browser app.
+2.  Tap the three dots (⋮) in the top-right corner.
+3.  Go to **Settings**, then tap on **Languages**.
+4.  Turn off the setting that says **"Offer to translate pages"**.
+
+Once you do this, the tablet will no longer ask to translate any websites.
+
+-----
+
+### 2\. Page Not Reappearing After Re-Lock
+
+This was a bug in the previous code. When you went back to the app, the lock screen would appear correctly, but after you entered the password again, the main page was not being instructed to show itself.
+
+I have fixed this logic. The page will now reliably appear every time you successfully enter the passcode.
+
+-----
+
+### Updated Code
+
+Here is the complete, corrected code. Simply replace your old code with this version.
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -447,13 +485,12 @@
             gap: 20px;
         }
 
-        /* MODIFICATION: Made passcode buttons circles */
         .passcode-key {
             width: 70px;
             height: 70px;
             font-size: 1.8rem;
             font-weight: 600;
-            border-radius: 50%; /* This makes it a circle */
+            border-radius: 50%;
             border: none;
             background: var(--surface-primary);
             color: var(--text-primary);
@@ -501,21 +538,10 @@
             <div id="modal-suggestions"></div>
             <button id="modal-send-btn">Send</button>
             <div id="keypad">
-                <div class="keypad-row">
-                    <button class="keypad-btn" data-key="0"><span>0</span></button><button class="keypad-btn" data-key="1"><span>1</span></button><button class="keypad-btn" data-key="2"><span>2</span></button><button class="keypad-btn" data-key="3"><span>3</span></button><button class="keypad-btn" data-key="4"><span>4</span></button>
-                </div>
-                <div class="keypad-row">
-                    <button class="keypad-btn" data-key="5"><span>5</span></button><button class="keypad-btn" data-key="6"><span>6</span></button><button class="keypad-btn" data-key="7"><span>7</span></button><button class="keypad-btn" data-key="8"><span>8</span></button><button class="keypad-btn" data-key="9"><span>9</span></button>
-                </div>
-                 <div class="keypad-row">
-                    <button class="keypad-btn key-char" data-key="B"><span>B</span></button><button class="keypad-btn key-char" data-key="C"><span>C</span></button><button class="keypad-btn key-char" data-key="F"><span>F</span></button><button class="keypad-btn key-char" data-key="G"><span>G</span></button><button class="keypad-btn key-char" data-key="H"><span>H</span></button>
-                </div>
-                <div class="keypad-row">
-                    <button class="keypad-btn key-space" data-key=" "><span>Space</span></button>
-                    <button class="keypad-btn delete-key" data-key="backspace">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: white;"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
-                    </button>
-                </div>
+                <div class="keypad-row"><button class="keypad-btn" data-key="0"><span>0</span></button><button class="keypad-btn" data-key="1"><span>1</span></button><button class="keypad-btn" data-key="2"><span>2</span></button><button class="keypad-btn" data-key="3"><span>3</span></button><button class="keypad-btn" data-key="4"><span>4</span></button></div>
+                <div class="keypad-row"><button class="keypad-btn" data-key="5"><span>5</span></button><button class="keypad-btn" data-key="6"><span>6</span></button><button class="keypad-btn" data-key="7"><span>7</span></button><button class="keypad-btn" data-key="8"><span>8</span></button><button class="keypad-btn" data-key="9"><span>9</span></button></div>
+                <div class="keypad-row"><button class="keypad-btn key-char" data-key="B"><span>B</span></button><button class="keypad-btn key-char" data-key="C"><span>C</span></button><button class="keypad-btn key-char" data-key="F"><span>F</span></button><button class="keypad-btn key-char" data-key="G"><span>G</span></button><button class="keypad-btn key-char" data-key="H"><span>H</span></button></div>
+                <div class="keypad-row"><button class="keypad-btn key-space" data-key=" "><span>Space</span></button><button class="keypad-btn delete-key" data-key="backspace"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: white;"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg></button></div>
             </div>
         </div>
     </div>
@@ -523,7 +549,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // --- PASSCODE LOCK LOGIC ---
-            // MODIFICATION: Changed passcode to 1416
             const CORRECT_PASSCODE = '1416';
             let enteredPasscode = '';
             let appInitialized = false;
@@ -536,7 +561,7 @@
             
             function createPasscodeKeypad() {
                 const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'delete'];
-                passcodeKeypad.innerHTML = ''; // Clear existing keys
+                passcodeKeypad.innerHTML = '';
                 keys.forEach(k => {
                     const key = document.createElement('button');
                     key.className = 'passcode-key';
@@ -544,7 +569,7 @@
                         key.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>`;
                         key.dataset.key = 'delete';
                     } else if (k === '') {
-                        key.style.visibility = 'hidden'; // Placeholder for layout
+                        key.style.visibility = 'hidden';
                     } else {
                         key.textContent = k;
                         key.dataset.key = k;
@@ -562,9 +587,12 @@
             function checkPasscode() {
                 if (enteredPasscode === CORRECT_PASSCODE) {
                     passcodeOverlay.classList.add('unlocked');
-                    mainContainer.classList.add('unlocked');
                     setTimeout(() => {
                         passcodeOverlay.style.display = 'none';
+                        
+                        // BUG FIX: Explicitly show the main container.
+                        mainContainer.style.display = 'block';
+
                         if (!appInitialized) {
                             initializeApp();
                             appInitialized = true;
@@ -580,36 +608,30 @@
                 }
             }
             
-            // MODIFICATION: Added logic to re-lock the screen on page show
             function relockScreen() {
                 enteredPasscode = '';
                 updatePasscodeDisplay();
-                mainContainer.classList.remove('unlocked');
-                mainContainer.style.display = 'none'; // Explicitly hide
+                // BUG FIX: Explicitly hide the main container.
+                mainContainer.style.display = 'none';
                 passcodeOverlay.style.display = 'flex';
                 passcodeOverlay.classList.remove('unlocked');
             }
 
             window.addEventListener('pageshow', function(event) {
-                // event.persisted is true if the page is loaded from the back/forward cache.
-                // We re-lock the screen every time the page is shown, except for the very first load.
                 if (appInitialized) {
                    relockScreen();
                 }
             });
 
-
             passcodeKeypad.addEventListener('click', (e) => {
                 const key = e.target.closest('.passcode-key');
                 if (!key || !key.dataset.key) return;
-
                 const keyValue = key.dataset.key;
                 if (keyValue === 'delete') {
                     enteredPasscode = enteredPasscode.slice(0, -1);
                 } else if (enteredPasscode.length < 4) {
                     enteredPasscode += keyValue;
                 }
-                
                 updatePasscodeDisplay();
                 if (enteredPasscode.length === 4) {
                     checkPasscode();
@@ -620,54 +642,24 @@
 
             // --- MAIN APPLICATION LOGIC ---
             function initializeApp() {
-                const setupPWA = () => {
-                    const manifest = { "name": "Bite Sushi House Table Selection", "short_name": "Bite Sushi", "start_url": ".", "display": "standalone", "background_color": "#0a0f1a", "theme_color": "#0a0f1a", "description": "A simple and elegant interface for selecting a table at Bite Sushi House.", "icons": [ { "src": "https://placehold.co/192x192/00ff9b/0a0f1a?text=Bite", "type": "image/png", "sizes": "192x192" }, { "src": "https://placehold.co/512x512/00ff9b/0a0f1a?text=Bite", "type": "image/png", "sizes": "512x512" } ] };
-                    const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-                    const manifestURL = URL.createObjectURL(blob);
-                    document.querySelector('#manifest-link').setAttribute('href', manifestURL);
-                };
-
+                const setupPWA = () => { const manifest = { "name": "Bite Sushi House Table Selection", "short_name": "Bite Sushi", "start_url": ".", "display": "standalone", "background_color": "#0a0f1a", "theme_color": "#0a0f1a", "description": "A simple and elegant interface for selecting a table at Bite Sushi House.", "icons": [ { "src": "https://placehold.co/192x192/00ff9b/0a0f1a?text=Bite", "type": "image/png", "sizes": "192x192" }, { "src": "https://placehold.co/512x512/00ff9b/0a0f1a?text=Bite", "type": "image/png", "sizes": "512x512" } ] }; const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' }); const manifestURL = URL.createObjectURL(blob); document.querySelector('#manifest-link').setAttribute('href', manifestURL); };
                 const tablesData = [ { "link": "https://bite.technology/menu/53/273", "name": " 01" }, { "link": "https://bite.technology/menu/53/274", "name": "01 B" }, { "link": "https://bite.technology/menu/53/275", "name": "01 C" }, { "link": "https://bite.technology/menu/53/276", "name": "01 F" }, { "link": "https://bite.technology/menu/53/277", "name": "01 G" }, { "link": "https://bite.technology/menu/53/278", "name": " 02 " }, { "link": "https://bite.technology/menu/53/279", "name": "02 B" }, { "link": "https://bite.technology/menu/53/280", "name": "02 C" }, { "link": "https://bite.technology/menu/53/281", "name": "02 F" }, { "link": "https://bite.technology/menu/53/282", "name": "02 G" }, { "link": "https://bite.technology/menu/53/283", "name": "02 H" }, { "link": "https://bite.technology/menu/53/284", "name": " 03" }, { "link": "https://bite.technology/menu/53/285", "name": "03 B" }, { "link": "https://bite.technology/menu/53/286", "name": "03 C" }, { "link": "https://bite.technology/menu/53/287", "name": "03 F" }, { "link": "https://bite.technology/menu/53/288", "name": " 05" }, { "link": "https://bite.technology/menu/53/289", "name": "05 B" }, { "link": "https://bite.technology/menu/53/290", "name": "05 C" }, { "link": "https://bite.technology/menu/53/291", "name": "05 F" }, { "link": "https://bite.technology/menu/53/292", "name": "05 G" }, { "link": "https://bite.technology/menu/53/293", "name": " 06" }, { "link": "https://bite.technology/menu/53/294", "name": "06 B" }, { "link": "https://bite.technology/menu/53/295", "name": "06 C" }, { "link": "https://bite.technology/menu/53/296", "name": "06 F" }, { "link": "https://bite.technology/menu/53/297", "name": "06 G" }, { "link": "https://bite.technology/menu/53/298", "name": " 07" }, { "link": "https://bite.technology/menu/53/299", "name": "07 B" }, { "link": "https://bite.technology/menu/53/300", "name": "07 C" }, { "link": "https://bite.technology/menu/53/301", "name": "07 F" }, { "link": "https://bite.technology/menu/53/302", "name": "07 G" }, { "link": "https://bite.technology/menu/53/303", "name": " 08" }, { "link": "https://bite.technology/menu/53/304", "name": "08 B" }, { "link": "https://bite.technology/menu/53/305", "name": "08 C" }, { "link": "https://bite.technology/menu/53/306", "name": "08 F" }, { "link": "https://bite.technology/menu/53/307", "name": "08 G" }, { "link": "https://bite.technology/menu/53/308", "name": " 09" }, { "link": "https://bite.technology/menu/53/309", "name": "09 B" }, { "link": "https://bite.technology/menu/53/310", "name": "09 C" }, { "link": "https://bite.technology/menu/53/311", "name": "09 F" }, { "link": "https://bite.technology/menu/53/312", "name": "09 G" }, { "link": "https://bite.technology/menu/53/313", "name": " 10" }, { "link": "https://bite.technology/menu/53/314", "name": "10 B" }, { "link": "https://bite.technology/menu/53/315", "name": "10 C" }, { "link": "https://bite.technology/menu/53/316", "name": "10 F" }, { "link": "https://bite.technology/menu/53/317", "name": " 11" }, { "link": "https://bite.technology/menu/53/318", "name": "11 B" }, { "link": "https://bite.technology/menu/53/319", "name": "11 C" }, { "link": "https://bite.technology/menu/53/320", "name": "11 F" }, { "link": "https://bite.technology/menu/53/321", "name": " 15" }, { "link": "https://bite.technology/menu/53/322", "name": "15 B" }, { "link": "https://bite.technology/menu/53/323", "name": "15 B" }, { "link": "https://bite.technology/menu/53/324", "name": "15 C" }, { "link": "https://bite.technology/menu/53/325", "name": "15 G" }, { "link": "https://bite.technology/menu/53/326", "name": " 16" }, { "link": "https://bite.technology/menu/53/327", "name": "16 B" }, { "link": "https://bite.technology/menu/53/328", "name": "16 C" }, { "link": "https://bite.technology/menu/53/329", "name": "16 G" }, { "link": "https://bite.technology/menu/53/330", "name": " 18" }, { "link": "https://bite.technology/menu/53/331", "name": " 19" }, { "link": "https://bite.technology/menu/53/332", "name": " 20" }, { "link": "https://bite.technology/menu/53/333", "name": " 20" }, { "link": "https://bite.technology/menu/53/334", "name": "20 B" }, { "link": "https://bite.technology/menu/53/335", "name": " 21" }, { "link": "https://bite.technology/menu/53/336", "name": "21 B" }, { "link": "https://bite.technology/menu/53/337", "name": " 22" }, { "link": "https://bite.technology/menu/53/338", "name": "22 B" }, { "link": "https://bite.technology/menu/53/339", "name": "22 C" }, { "link": "https://bite.technology/menu/53/340", "name": " 23" }, { "link": "https://bite.technology/menu/53/341", "name": "23 B" }, { "link": "https://bite.technology/menu/53/342", "name": "23 C" }, { "link": "https://bite.technology/menu/53/343", "name": " 25" }, { "link": "https://bite.technology/menu/53/344", "name": "25 B" }, { "link": "https://bite.technology/menu/53/345", "name": " 26" }, { "link": "https://bite.technology/menu/53/346", "name": "26 B" }, { "link": "https://bite.technology/menu/53/347", "name": " 31" }, { "link": "https://bite.technology/menu/53/348", "name": "31 B" }, { "link": "https://bite.technology/menu/53/349", "name": "31 C" }, { "link": "https://bite.technology/menu/53/350", "name": " 32" }, { "link": "https://bite.technology/menu/53/351", "name": "32 B" }, { "link": "https://bite.technology/menu/53/352", "name": "32 C" }, { "link": "https://bite.technology/menu/53/353", "name": " 33" }, { "link": "https://bite.technology/menu/53/354", "name": "33 B" }, { "link": "https://bite.technology/menu/53/355", "name": "33 C" }, { "link": "https://bite.technology/menu/53/356", "name": " 35" }, { "link": "https://bite.technology/menu/53/357", "name": "35 B" }, { "link": "https://bite.technology/menu/53/358", "name": "35 C" }, { "link": "https://bite.technology/menu/53/359", "name": " 36" }, { "link": "https://bite.technology/menu/53/360", "name": "36 B" }, { "link": "https://bite.technology/menu/53/361", "name": "36 C" }, { "link": "https://bite.technology/menu/53/362", "name": " 37" }, { "link": "https://bite.technology/menu/53/6462", "name": "37 B" }, { "link": "https://bite.technology/menu/53/6553", "name": "37 C" }, { "link": "https://bite.technology/menu/53/6645", "name": "38 " }, { "link": "https://bite.technology/menu/53/6738", "name": "38 B" }, { "link": "https://bite.technology/menu/53/6832", "name": "38 C" }, { "link": "https://bite.technology/menu/53/6927", "name": " 39" }, { "link": "https://bite.technology/menu/53/7023", "name": "39 B" }, { "link": "https://bite.technology/menu/53/7120", "name": " 40" }, { "link": "https://bite.technology/menu/53/7218", "name": "40 B" }, { "link": "https://bite.technology/menu/53/7317", "name": "40 C" }, { "link": "https://bite.technology/menu/53/7417", "name": " 41" }, { "link": "https://bite.technology/menu/53/7518", "name": "41 B" }, { "link": "https://bite.technology/menu/53/7620", "name": "41 C" }, { "link": "https://bite.technology/menu/53/7723", "name": " 42" }, { "link": "https://bite.technology/menu/53/7827", "name": "42 B" }, { "link": "https://bite.technology/menu/53/7932", "name": "42 C" } ];
                 const buttonGrid = document.getElementById('button-grid'), modal = document.getElementById('table-modal'), openModalBtn = document.getElementById('open-modal-btn'), closeModalBtn = document.getElementById('modal-close-btn'), modalInput = document.getElementById('modal-table-input'), suggestionsContainer = document.getElementById('modal-suggestions'), keypad = document.getElementById('keypad'), sendBtn = document.getElementById('modal-send-btn');
                 let isModalOpen = false;
-
                 const openModal = () => { if (!isModalOpen) { modal.style.display = 'flex'; isModalOpen = true; history.pushState({modal: true}, null); } };
                 const closeModal = () => { if (isModalOpen) { modal.style.display = 'none'; isModalOpen = false; modalInput.value = ''; suggestionsContainer.innerHTML = ''; sendBtn.style.display = 'none'; if (history.state && history.state.modal) history.back(); } };
-                openModalBtn.addEventListener('click', openModal);
-                closeModalBtn.addEventListener('click', closeModal);
-                modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-                window.addEventListener('popstate', (e) => { if (isModalOpen) closeModal(); });
-
+                openModalBtn.addEventListener('click', openModal); closeModalBtn.addEventListener('click', closeModal); modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); }); window.addEventListener('popstate', (e) => { if (isModalOpen) closeModal(); });
                 const cleanNameForDisplay = (name) => name.trim().replace(/\s+/g, ' '), normalizeString = (str) => str.trim().replace(/\s+/g, '').toLowerCase();
-                
-                function renderMainGridButtons(tables) {
-                    buttonGrid.innerHTML = '';
-                    tables.forEach(table => { const btn = document.createElement('button'); btn.className = 'table-btn'; const span = document.createElement('span'); span.textContent = cleanNameForDisplay(table.name); btn.appendChild(span); btn.addEventListener('click', (e) => { e.currentTarget.classList.add('selected'); setTimeout(() => { window.location.href = table.link; }, 400); }); buttonGrid.appendChild(btn); });
-                }
-                
+                function renderMainGridButtons(tables) { buttonGrid.innerHTML = ''; tables.forEach(table => { const btn = document.createElement('button'); btn.className = 'table-btn'; const span = document.createElement('span'); span.textContent = cleanNameForDisplay(table.name); btn.appendChild(span); btn.addEventListener('click', (e) => { e.currentTarget.classList.add('selected'); setTimeout(() => { window.location.href = table.link; }, 400); }); buttonGrid.appendChild(btn); }); }
                 function navigateToTable(tableName) { const match = tablesData.find(t => normalizeString(t.name) === normalizeString(tableName)); if (match) window.location.href = match.link; }
-                
                 keypad.addEventListener('click', (e) => { const btn = e.target.closest('.keypad-btn'); if (!btn) return; const key = btn.dataset.key; if (key === 'backspace') modalInput.value = modalInput.value.slice(0, -1); else modalInput.value += key; modalInput.dispatchEvent(new Event('input', { bubbles: true })); });
                 sendBtn.addEventListener('click', () => { if (modalInput.value.trim()) navigateToTable(modalInput.value.trim()); });
-                
-                modalInput.addEventListener('input', () => {
-                    const searchTerm = normalizeString(modalInput.value);
-                    suggestionsContainer.innerHTML = '';
-                    sendBtn.style.display = 'none';
-                    if (!searchTerm) return;
-                    const matches = tablesData.filter(t => normalizeString(t.name).startsWith(searchTerm));
-                    if (matches.length === 1 && normalizeString(matches[0].name) === searchTerm) sendBtn.style.display = 'block';
-                    matches.slice(0, 5).forEach(table => { if (normalizeString(table.name) === searchTerm) return; const item = document.createElement('div'); item.className = 'suggestion-item'; item.textContent = cleanNameForDisplay(table.name); item.addEventListener('click', (e) => { e.currentTarget.classList.add('selected'); setTimeout(() => { navigateToTable(cleanNameForDisplay(table.name)); }, 400); }); suggestionsContainer.appendChild(item); });
-                });
-                
-                setupPWA();
-                renderMainGridButtons(tablesData);
-                
-                window.addEventListener('pageshow', function() {
-                    document.querySelectorAll('.selected').forEach(button => button.classList.remove('selected'));
-                });
+                modalInput.addEventListener('input', () => { const searchTerm = normalizeString(modalInput.value); suggestionsContainer.innerHTML = ''; sendBtn.style.display = 'none'; if (!searchTerm) return; const matches = tablesData.filter(t => normalizeString(t.name).startsWith(searchTerm)); if (matches.length === 1 && normalizeString(matches[0].name) === searchTerm) sendBtn.style.display = 'block'; matches.slice(0, 5).forEach(table => { if (normalizeString(table.name) === searchTerm) return; const item = document.createElement('div'); item.className = 'suggestion-item'; item.textContent = cleanNameForDisplay(table.name); item.addEventListener('click', (e) => { e.currentTarget.classList.add('selected'); setTimeout(() => { navigateToTable(cleanNameForDisplay(table.name)); }, 400); }); suggestionsContainer.appendChild(item); }); });
+                setupPWA(); renderMainGridButtons(tablesData);
+                window.addEventListener('pageshow', function() { document.querySelectorAll('.selected').forEach(button => button.classList.remove('selected')); });
             }
         });
     </script>
 </body>
 </html>
+```
