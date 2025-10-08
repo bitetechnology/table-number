@@ -177,14 +177,6 @@
         .passcode-key { width: 70px; height: 70px; font-size: 1.8rem; font-weight: 600; border-radius: 50%; border: none; background: var(--surface-primary); color: var(--text-primary); cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; }
         .passcode-key:active { background: var(--accent-primary); color: var(--bg-primary); transform: scale(0.95); }
 
-        .passcode-key.delete-key {
-            background: linear-gradient(135deg, var(--delete-primary) 0%, var(--delete-secondary) 100%);
-        }
-        .passcode-key.delete-key:active {
-            background: var(--delete-secondary);
-            color: var(--text-primary);
-        }
-
         .hidden {
             display: none !important;
         }
@@ -195,7 +187,7 @@
             font-size: 1.1rem;
             font-weight: 700;
             background: linear-gradient(135deg, var(--accent-gradient-start) 0%, var(--accent-primary) 100%);
-            color: var(--bg-primary);
+            color: var(--text-primary);
             border: none;
             border-radius: 12px;
             cursor: pointer;
@@ -239,7 +231,7 @@
                 <div class="keypad-row"><button class="keypad-btn" data-key="0"><span>0</span></button><button class="keypad-btn" data-key="1"><span>1</span></button><button class="keypad-btn" data-key="2"><span>2</span></button><button class="keypad-btn" data-key="3"><span>3</span></button><button class="keypad-btn" data-key="4"><span>4</span></button></div>
                 <div class="keypad-row"><button class="keypad-btn" data-key="5"><span>5</span></button><button class="keypad-btn" data-key="6"><span>6</span></button><button class="keypad-btn" data-key="7"><span>7</span></button><button class="keypad-btn" data-key="8"><span>8</span></button><button class="keypad-btn" data-key="9"><span>9</span></button></div>
                 <div class="keypad-row"><button class="keypad-btn key-char" data-key="B"><span>B</span></button><button class="keypad-btn key-char" data-key="C"><span>C</span></button><button class="keypad-btn key-char" data-key="F"><span>F</span></button><button class="keypad-btn key-char" data-key="G"><span>G</span></button><button class="keypad-btn key-char" data-key="H"><span>H</span></button></div>
-                <div class="keypad-row"><button class="keypad-btn key-space" data-key=" "><span>Space</span></button><button class="keypad-btn delete-key" data-key="backspace"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: white;"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg></button></div>
+                <div class="keypad-row"><button class="keypad-btn key-space" data-key=" "><span>Space</span></button><button class="keypad-btn delete-key" data-key="backspace"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: white;"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg></button></div>
             </div>
         </div>
     </div>
@@ -264,7 +256,6 @@
                     const key = document.createElement('button');
                     key.className = 'passcode-key';
                     if (k === 'delete') {
-                        key.classList.add('delete-key');
                         key.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>`;
                         key.dataset.key = 'delete';
                     } else if (k === '') {
@@ -320,8 +311,8 @@
                 }
             }
 
-            window.addEventListener('pageshow', function(event) {
-                if (event.persisted) {
+            window.addEventListener('focus', function() {
+                if (appInitialized) {
                    relockScreen();
                 }
             });
