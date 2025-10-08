@@ -7,42 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0a0f1a"/>
-    <!-- The manifest is linked from the parent document -->
     <link rel="manifest" href="manifest.json" id="manifest-link">
-    <style>
-        /* Basic reset to make the iframe truly fullscreen */
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            overflow: hidden; /* Prevents scrollbars on the parent page */
-            background-color: #0a0f1a;
-        }
-
-        /* Style the iframe to fill its container */
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none; /* Removes the default iframe border */
-            display: block;
-        }
-    </style>
-</head>
-<body>
-
-<!-- The main iframe that will display the content -->
-<iframe id="app-frame" srcdoc='
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="google" content="notranslate">
-    <title>Bite Sushi House - Table Selection</title>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0a0f1a"/>
-    
     <style>
         :root {
             --bg-primary: #0a0f1a;
@@ -67,22 +32,38 @@
 
         @import url("https://fonts.googleapis.com/css2?family=Urbanist:wght@300;400;500;600;700;800&display=swap");
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        html, body { height: 100%; }
-        body {
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-primary);
+            font-family: "Urbanist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        #app-container {
+            height: 100%;
+            width: 100%;
             background: 
                 radial-gradient(circle at 20% 80%, rgba(0, 255, 155, 0.08) 0%, transparent 50%),
                 radial-gradient(circle at 80% 20%, rgba(0, 255, 155, 0.06) 0%, transparent 50%),
                 linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
             color: var(--text-primary);
-            font-family: "Urbanist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: clamp(15px, 3vw, 30px);
-            overflow: hidden;
+            box-sizing: border-box;
         }
+        
+        #content-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        .hidden { display: none !important; }
         
         .container {
             width: 100%;
@@ -212,7 +193,6 @@
         .passcode-key:active { background: var(--accent-primary); color: var(--bg-primary); transform: scale(0.95); }
         .passcode-key.delete-key { background: var(--surface-light); }
 
-        .hidden { display: none !important; }
         #go-back-btn {
             width: 100%;
             margin-top: 25px;
@@ -228,44 +208,74 @@
         }
         #go-back-btn:active { transform: scale(0.98); }
 
+        #back-to-app-btn {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1001;
+            padding: 16px 24px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-gradient-start) 0%, var(--accent-primary) 100%);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: 100px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+        }
+        #back-to-app-btn:active { transform: translateX(-50%) scale(0.95); }
+
     </style>
 </head>
 <body>
-    <div id="passcode-overlay">
-        <div id="passcode-content">
-            <h2>Enter Passcode</h2>
-            <div id="passcode-display">
-                <span class="passcode-digit"></span><span class="passcode-digit"></span><span class="passcode-digit"></span><span class="passcode-digit"></span>
-            </div>
-            <div id="passcode-keypad"></div>
-            <button id="go-back-btn" class="hidden">Torna Indietro</button>
-        </div>
-    </div>
-
-    <div class="container">
-        <div class="header-section"><h1>Bite Sushi House</h1></div>
-        <button id="open-modal-btn">Enter Table Number</button>
-        <div id="button-grid"></div>
-    </div>
-
-    <div id="table-modal" class="modal-overlay">
-        <div class="modal-content">
-            <button id="modal-close-btn">&times;</button>
-            <h2>Enter Table Number</h2>
-            <input type="text" id="modal-table-input" placeholder="_" autocomplete="off" readonly>
-            <div id="modal-suggestions"></div>
-            <button id="modal-send-btn">Send</button>
-            <div id="keypad">
-                <div class="keypad-row"><button class="keypad-btn" data-key="0"><span>0</span></button><button class="keypad-btn" data-key="1"><span>1</span></button><button class="keypad-btn" data-key="2"><span>2</span></button><button class="keypad-btn" data-key="3"><span>3</span></button><button class="keypad-btn" data-key="4"><span>4</span></button></div>
-                <div class="keypad-row"><button class="keypad-btn" data-key="5"><span>5</span></button><button class="keypad-btn" data-key="6"><span>6</span></button><button class="keypad-btn" data-key="7"><span>7</span></button><button class="keypad-btn" data-key="8"><span>8</span></button><button class="keypad-btn" data-key="9"><span>9</span></button></div>
-                <div class="keypad-row"><button class="keypad-btn key-char" data-key="B"><span>B</span></button><button class="keypad-btn key-char" data-key="C"><span>C</span></button><button class="keypad-btn key-char" data-key="F"><span>F</span></button><button class="keypad-btn key-char" data-key="G"><span>G</span></button><button class="keypad-btn key-char" data-key="H"><span>H</span></button></div>
-                <div class="keypad-row"><button class="keypad-btn key-space" data-key=" "><span>Space</span></button><button class="keypad-btn delete-key" data-key="backspace"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: white;"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg></button></div>
+    
+    <div id="app-container">
+        <!-- The entire original app content is now inside this container -->
+        <div id="passcode-overlay">
+            <div id="passcode-content">
+                <h2>Enter Passcode</h2>
+                <div id="passcode-display">
+                    <span class="passcode-digit"></span><span class="passcode-digit"></span><span class="passcode-digit"></span><span class="passcode-digit"></span>
+                </div>
+                <div id="passcode-keypad"></div>
+                <button id="go-back-btn" class="hidden">Torna Indietro</button>
             </div>
         </div>
+
+        <div class="container">
+            <div class="header-section"><h1>Bite Sushi House</h1></div>
+            <button id="open-modal-btn">Enter Table Number</button>
+            <div id="button-grid"></div>
+        </div>
+
+        <div id="table-modal" class="modal-overlay">
+            <div class="modal-content">
+                <button id="modal-close-btn">&times;</button>
+                <h2>Enter Table Number</h2>
+                <input type="text" id="modal-table-input" placeholder="_" autocomplete="off" readonly>
+                <div id="modal-suggestions"></div>
+                <button id="modal-send-btn">Send</button>
+                <div id="keypad">
+                    <div class="keypad-row"><button class="keypad-btn" data-key="0"><span>0</span></button><button class="keypad-btn" data-key="1"><span>1</span></button><button class="keypad-btn" data-key="2"><span>2</span></button><button class="keypad-btn" data-key="3"><span>3</span></button><button class="keypad-btn" data-key="4"><span>4</span></button></div>
+                    <div class="keypad-row"><button class="keypad-btn" data-key="5"><span>5</span></button><button class="keypad-btn" data-key="6"><span>6</span></button><button class="keypad-btn" data-key="7"><span>7</span></button><button class="keypad-btn" data-key="8"><span>8</span></button><button class="keypad-btn" data-key="9"><span>9</span></button></div>
+                    <div class="keypad-row"><button class="keypad-btn key-char" data-key="B"><span>B</span></button><button class="keypad-btn key-char" data-key="C"><span>C</span></button><button class="keypad-btn key-char" data-key="F"><span>F</span></button><button class="keypad-btn key-char" data-key="G"><span>G</span></button><button class="keypad-btn key-char" data-key="H"><span>H</span></button></div>
+                    <div class="keypad-row"><button class="keypad-btn key-space" data-key=" "><span>Space</span></button><button class="keypad-btn delete-key" data-key="backspace"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: white;"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg></button></div>
+                </div>
+            </div>
+        </div>
     </div>
+    
+    <iframe id="content-frame" class="hidden"></iframe>
+    <button id="back-to-app-btn" class="hidden">Back to Tables</button>
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            const appContainer = document.getElementById('app-container');
+            const contentFrame = document.getElementById('content-frame');
+            const backToAppBtn = document.getElementById('back-to-app-btn');
+
             const CORRECT_PASSCODE = "1416";
             let enteredPasscode = "";
             let appInitialized = false;
@@ -277,6 +287,22 @@
             const mainContainer = document.querySelector(".container");
             const goBackButton = document.getElementById("go-back-btn");
             
+            function showContentFrame(url) {
+                appContainer.classList.add('hidden');
+                contentFrame.src = url;
+                contentFrame.classList.remove('hidden');
+                backToAppBtn.classList.remove('hidden');
+            }
+
+            function hideContentFrame() {
+                appContainer.classList.remove('hidden');
+                contentFrame.classList.add('hidden');
+                contentFrame.src = 'about:blank'; // Stop loading
+                backToAppBtn.classList.add('hidden');
+            }
+
+            backToAppBtn.addEventListener('click', hideContentFrame);
+
             function createPasscodeKeypad() {
                 const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "delete"];
                 passcodeKeypad.innerHTML = "";
@@ -359,8 +385,7 @@
             goBackButton.addEventListener("click", () => {
                 const lastUrl = sessionStorage.getItem("lastVisitedTable");
                 if (lastUrl) {
-                    // MODIFICATION: Send message to parent to navigate
-                    window.parent.postMessage({ type: "navigate", url: lastUrl }, "*");
+                    showContentFrame(lastUrl);
                 }
             });
 
@@ -387,8 +412,7 @@
                             e.currentTarget.classList.add("selected");
                             sessionStorage.setItem("lastVisitedTable", table.link);
                             setTimeout(() => {
-                                // MODIFICATION: Send message to parent to navigate
-                                window.parent.postMessage({ type: "navigate", url: table.link }, "*");
+                                showContentFrame(table.link);
                             }, 400);
                         });
                         buttonGrid.appendChild(btn);
@@ -399,8 +423,7 @@
                     const match = tablesData.find(t => normalizeString(t.name) === normalizeString(tableName));
                     if (match) {
                         sessionStorage.setItem("lastVisitedTable", match.link);
-                        // MODIFICATION: Send message to parent to navigate
-                        window.parent.postMessage({ type: "navigate", url: match.link }, "*");
+                        showContentFrame(match.link);
                     }
                 }
 
@@ -413,14 +436,11 @@
                     document.querySelectorAll(".selected").forEach(button => button.classList.remove("selected"));
                     const lastUrl = sessionStorage.getItem("lastVisitedTable");
                     
-                    if (window.top === window.self) {
-                        // This code runs only when NOT in an iframe.
-                        if (lastUrl && event.persisted) {
-                            relockScreen();
-                        } else if (lastUrl && !event.persisted) {
-                            sessionStorage.removeItem("lastVisitedTable");
-                            goBackButton.classList.add("hidden");
-                        }
+                    if (event.persisted) {
+                        relockScreen();
+                    } else if (lastUrl) {
+                        sessionStorage.removeItem("lastVisitedTable");
+                        goBackButton.classList.add("hidden");
                     }
                 });
             }
@@ -429,65 +449,37 @@
             checkPasscode();
             
         });
-    </script>
-</body>
-</html>
-'></iframe>
 
-<script>
-    // This script runs on the parent page
-    const appFrame = document.getElementById('app-frame');
-
-    // Listen for messages from the iframe
-    window.addEventListener('message', (event) => {
-        // We dont need a security check here because the content is from the same origin (srcdoc)
-        if (event.data && event.data.type === 'navigate') {
-            // Change the iframe's src to the new URL, loading the menu page
-            appFrame.removeAttribute('srcdoc'); // Remove srcdoc to prioritize src
-            appFrame.src = event.data.url;
-        }
-    });
-
-    // PWA Manifest and Service Worker setup for the parent page
-    document.addEventListener('DOMContentLoaded', () => {
-        const setupPWA = () => {
-            const manifest = {
-                "name": "Bite Sushi House",
-                "short_name": "Bite Sushi",
-                "start_url": ".",
-                "display": "standalone", /* This is key for hiding the address bar */
-                "background_color": "#0a0f1a",
-                "theme_color": "#0a0f1a",
-                "description": "Bite Sushi House Table Selection.",
-                "icons": [{
-                    "src": "https://placehold.co/192x192/00ff9b/0a0f1a?text=Bite",
-                    "type": "image/png",
-                    "sizes": "192x192"
-                }, {
-                    "src": "https://placehold.co/512x512/00ff9b/0a0f1a?text=Bite",
-                    "type": "image/png",
-                    "sizes": "512x512"
-                }]
+        // PWA Manifest setup for the main page
+        document.addEventListener('DOMContentLoaded', () => {
+            const setupPWA = () => {
+                const manifest = {
+                    "name": "Bite Sushi House",
+                    "short_name": "Bite Sushi",
+                    "start_url": ".",
+                    "display": "standalone", /* This is key for hiding the address bar */
+                    "background_color": "#0a0f1a",
+                    "theme_color": "#0a0f1a",
+                    "description": "Bite Sushi House Table Selection.",
+                    "icons": [{
+                        "src": "https://placehold.co/192x192/00ff9b/0a0f1a?text=Bite",
+                        "type": "image/png",
+                        "sizes": "192x192"
+                    }, {
+                        "src": "https://placehold.co/512x512/00ff9b/0a0f1a?text=Bite",
+                        "type": "image/png",
+                        "sizes": "512x512"
+                    }]
+                };
+                const manifestURL = 'data:application/manifest+json;base64,' + btoa(unescape(encodeURIComponent(JSON.stringify(manifest))));
+                document.getElementById('manifest-link').setAttribute('href', manifestURL);
             };
-            const manifestURL = 'data:application/manifest+json;base64,' + btoa(unescape(encodeURIComponent(JSON.stringify(manifest))));
-            document.getElementById('manifest-link').setAttribute('href', manifestURL);
-        };
 
-        const registerServiceWorker = () => {
-            // This function is removed to prevent errors in the current environment.
-            // In a real hosting environment, you would have a separate sw.js file and register it normally:
-            // if ('serviceWorker' in navigator) {
-            //   navigator.serviceWorker.register('/sw.js')
-            //     .then(reg => console.log('Service worker registered successfully', reg))
-            //     .catch(err => console.error('Service worker registration failed:', err));
-            // }
-        };
-
-        setupPWA();
-        // registerServiceWorker(); // Call is removed
-    });
-</script>
-
+            // Service Worker registration is removed to prevent errors in the preview environment.
+            // On a real web server, you would have a separate sw.js file.
+            setupPWA();
+        });
+    </script>
 </body>
 </html>
 
