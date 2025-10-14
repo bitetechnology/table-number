@@ -207,6 +207,35 @@
         }
         #go-back-btn:active { transform: scale(0.98); }
 
+        /* --- NEW: Loader Styles --- */
+        #loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 15, 26, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10002; /* Higher than iframe and modal */
+            transition: opacity 0.3s ease;
+        }
+        .loader {
+            border: 5px solid var(--surface-tertiary);
+            border-top: 5px solid var(--accent-primary);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
     </style>
 </head>
 <body>
@@ -244,6 +273,11 @@
         <div id="button-grid"></div>
     </div>
     
+    <!-- NEW: Loader HTML Element -->
+    <div id="loader-overlay" class="hidden">
+        <div class="loader"></div>
+    </div>
+    
     <script>
         document.addEventListener("DOMContentLoaded", function() {
 
@@ -257,6 +291,12 @@
             const passcodeKeypad = document.getElementById("passcode-keypad");
             const mainContainer = document.querySelector(".container");
             const goBackButton = document.getElementById("go-back-btn");
+            // NEW: Get loader element
+            const loaderOverlay = document.getElementById("loader-overlay");
+
+            // NEW: Functions to show/hide the loader
+            const showLoader = () => loaderOverlay.classList.remove("hidden");
+            const hideLoader = () => loaderOverlay.classList.add("hidden");
             
             function showContentFrame(url) {
                 // Hide main app content
@@ -266,12 +306,17 @@
                 const iframe = document.createElement('iframe');
                 iframe.id = 'content-frame';
                 iframe.src = url;
+                
+                // When the iframe content finishes loading, hide the spinner
+                iframe.onload = hideLoader;
+
                 document.body.appendChild(iframe);
 
                 history.pushState({iframeVisible: true}, "");
             }
 
             function hideContentFrame() {
+                hideLoader(); // Hide loader when returning
                 const iframe = document.getElementById('content-frame');
                 if (iframe) {
                     iframe.remove();
@@ -369,7 +414,9 @@
             goBackButton.addEventListener("click", () => {
                 const lastUrl = sessionStorage.getItem("lastVisitedTable");
                 if (lastUrl) {
-                    showContentFrame(lastUrl);
+                    showLoader(); // Show loader when going back to the menu
+                    // A small delay ensures the loader is visible before the iframe loads
+                    setTimeout(() => showContentFrame(lastUrl), 100);
                 }
             });
 
@@ -395,9 +442,10 @@
                         btn.addEventListener("click", (e) => {
                             e.currentTarget.classList.add("selected");
                             sessionStorage.setItem("lastVisitedTable", table.link);
+                            showLoader(); // MODIFIED: Show loader on click
                             setTimeout(() => {
                                 showContentFrame(table.link);
-                            }, 400);
+                            }, 400); // Keep delay to allow animation to finish
                         });
                         buttonGrid.appendChild(btn);
                     });
@@ -407,16 +455,18 @@
                     const match = tablesData.find(t => normalizeString(t.name) === normalizeString(tableName));
                     if (match) {
                         sessionStorage.setItem("lastVisitedTable", match.link);
-                        showContentFrame(match.link);
+                        showLoader(); // MODIFIED: Show loader before navigating
+                        setTimeout(() => showContentFrame(match.link), 100);
                     }
                 }
 
                 keypad.addEventListener("click", (e) => { const btn = e.target.closest(".keypad-btn"); if (!btn) return; const key = btn.dataset.key; if (key === "backspace") modalInput.value = modalInput.value.slice(0, -1); else modalInput.value += key; modalInput.dispatchEvent(new Event("input", { bubbles: true })); });
                 sendBtn.addEventListener("click", () => { if (modalInput.value.trim()) navigateToTable(modalInput.value.trim()); });
-                modalInput.addEventListener("input", () => { const searchTerm = normalizeString(modalInput.value); suggestionsContainer.innerHTML = ""; sendBtn.style.display = "none"; if (!searchTerm) return; const matches = tablesData.filter(t => normalizeString(t.name).startsWith(searchTerm)); if (matches.length === 1 && normalizeString(matches[0].name) === searchTerm) sendBtn.style.display = "block"; matches.slice(0, 5).forEach(table => { if (normalizeString(table.name) === searchTerm) return; const item = document.createElement("div"); item.className = "suggestion-item"; item.textContent = cleanNameForDisplay(table.name); item.addEventListener("click", (e) => { e.currentTarget.classList.add("selected"); setTimeout(() => { navigateToTable(cleanNameForDisplay(table.name)); }, 400); }); suggestionsContainer.appendChild(item); }); });
+                modalInput.addEventListener("input", () => { const searchTerm = normalizeString(modalInput.value); suggestionsContainer.innerHTML = ""; sendBtn.style.display = "none"; if (!searchTerm) return; const matches = tablesData.filter(t => normalizeString(t.name).startsWith(searchTerm)); if (matches.length === 1 && normalizeString(matches[0].name) === searchTerm) sendBtn.style.display = "block"; matches.slice(0, 5).forEach(table => { if (normalizeString(table.name) === searchTerm) return; const item = document.createElement("div"); item.className = "suggestion-item"; item.textContent = cleanNameForDisplay(table.name); item.addEventListener("click", (e) => { e.currentTarget.classList.add("selected"); navigateToTable(cleanNameForDisplay(table.name)); }); suggestionsContainer.appendChild(item); }); });
                 renderMainGridButtons(tablesData);
                 
                 window.addEventListener("pageshow", function(event) {
+                    hideLoader(); // MODIFIED: Ensure loader is hidden on page show
                     document.querySelectorAll(".selected").forEach(button => button.classList.remove("selected"));
                     const lastUrl = sessionStorage.getItem("lastVisitedTable");
                     
