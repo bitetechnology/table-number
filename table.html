@@ -207,7 +207,6 @@
         }
         #go-back-btn:active { transform: scale(0.98); }
 
-        /* --- NEW: Loader Styles --- */
         #loader-overlay {
             position: fixed;
             top: 0;
@@ -220,7 +219,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 10002; /* Higher than iframe and modal */
+            z-index: 10002;
             transition: opacity 0.3s ease;
         }
         .loader {
@@ -273,7 +272,6 @@
         <div id="button-grid"></div>
     </div>
     
-    <!-- NEW: Loader HTML Element -->
     <div id="loader-overlay" class="hidden">
         <div class="loader"></div>
     </div>
@@ -291,23 +289,18 @@
             const passcodeKeypad = document.getElementById("passcode-keypad");
             const mainContainer = document.querySelector(".container");
             const goBackButton = document.getElementById("go-back-btn");
-            // NEW: Get loader element
             const loaderOverlay = document.getElementById("loader-overlay");
 
-            // NEW: Functions to show/hide the loader
             const showLoader = () => loaderOverlay.classList.remove("hidden");
             const hideLoader = () => loaderOverlay.classList.add("hidden");
             
             function showContentFrame(url) {
-                // Hide main app content
                 document.querySelectorAll('.container, #table-modal, #passcode-overlay').forEach(el => el.classList.add('hidden'));
 
-                // Create and inject the iframe
                 const iframe = document.createElement('iframe');
                 iframe.id = 'content-frame';
                 iframe.src = url;
                 
-                // When the iframe content finishes loading, hide the spinner
                 iframe.onload = hideLoader;
 
                 document.body.appendChild(iframe);
@@ -316,12 +309,11 @@
             }
 
             function hideContentFrame() {
-                hideLoader(); // Hide loader when returning
+                hideLoader(); 
                 const iframe = document.getElementById('content-frame');
                 if (iframe) {
                     iframe.remove();
                 }
-                // Show main app content again
                 document.querySelectorAll('.container, #table-modal, #passcode-overlay').forEach(el => el.classList.remove('hidden'));
                 relockScreen();
             }
@@ -414,8 +406,7 @@
             goBackButton.addEventListener("click", () => {
                 const lastUrl = sessionStorage.getItem("lastVisitedTable");
                 if (lastUrl) {
-                    showLoader(); // Show loader when going back to the menu
-                    // A small delay ensures the loader is visible before the iframe loads
+                    showLoader();
                     setTimeout(() => showContentFrame(lastUrl), 100);
                 }
             });
@@ -442,10 +433,10 @@
                         btn.addEventListener("click", (e) => {
                             e.currentTarget.classList.add("selected");
                             sessionStorage.setItem("lastVisitedTable", table.link);
-                            showLoader(); // MODIFIED: Show loader on click
+                            showLoader();
                             setTimeout(() => {
                                 showContentFrame(table.link);
-                            }, 400); // Keep delay to allow animation to finish
+                            }, 400);
                         });
                         buttonGrid.appendChild(btn);
                     });
@@ -455,7 +446,7 @@
                     const match = tablesData.find(t => normalizeString(t.name) === normalizeString(tableName));
                     if (match) {
                         sessionStorage.setItem("lastVisitedTable", match.link);
-                        showLoader(); // MODIFIED: Show loader before navigating
+                        showLoader();
                         setTimeout(() => showContentFrame(match.link), 100);
                     }
                 }
@@ -466,7 +457,7 @@
                 renderMainGridButtons(tablesData);
                 
                 window.addEventListener("pageshow", function(event) {
-                    hideLoader(); // MODIFIED: Ensure loader is hidden on page show
+                    hideLoader();
                     document.querySelectorAll(".selected").forEach(button => button.classList.remove("selected"));
                     const lastUrl = sessionStorage.getItem("lastVisitedTable");
                     
@@ -487,14 +478,14 @@
             }
         });
 
-        // PWA Manifest setup for the main page
+        // PWA Manifest setup
         document.addEventListener('DOMContentLoaded', () => {
             const setupPWA = () => {
                 const manifest = {
                     "name": "Bite Sushi House",
                     "short_name": "Bite Sushi",
                     "start_url": ".",
-                    "display": "standalone", /* This is key for hiding the address bar */
+                    "display": "standalone",
                     "background_color": "#0a0f1a",
                     "theme_color": "#0a0f1a",
                     "description": "Bite Sushi House Table Selection.",
