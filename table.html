@@ -273,8 +273,6 @@
     <div id="loader-overlay" class="hidden">
         <div class="loader"></div>
     </div>
-
-    <iframe id="content-frame" class="hidden" allowfullscreen></iframe>
     
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -293,31 +291,26 @@
 
                 const showLoader = () => loaderOverlay.classList.remove("hidden");
                 const hideLoader = () => loaderOverlay.classList.add("hidden");
-
+                
                 function showContentFrame(url) {
                     document.querySelectorAll('.container, #table-modal, #passcode-overlay').forEach(el => el.classList.add('hidden'));
-                    
-                    const iframe = document.getElementById('content-frame');
-                    
-                    iframe.onload = () => {
-                        hideLoader();
-                    };
 
-                    // Add a cache-busting parameter to the URL
-                    const cacheBustedUrl = url + (url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
-                    iframe.src = cacheBustedUrl;
-                    iframe.classList.remove('hidden');
+                    const iframe = document.createElement('iframe');
+                    iframe.id = 'content-frame';
+                    iframe.src = url;
                     
+                    iframe.onload = hideLoader;
+
+                    document.body.appendChild(iframe);
+
                     history.pushState({iframeVisible: true}, "");
                 }
-
 
                 function hideContentFrame() {
                     hideLoader(); 
                     const iframe = document.getElementById('content-frame');
                     if (iframe) {
-                        iframe.classList.add('hidden');
-                        iframe.src = 'about:blank';
+                        iframe.remove();
                     }
                     document.querySelectorAll('.container, #table-modal, #passcode-overlay').forEach(el => {
                         if (el) el.classList.remove('hidden')
@@ -327,7 +320,7 @@
 
                 window.addEventListener('popstate', function(event) {
                     const iframe = document.getElementById('content-frame');
-                    if (iframe && !iframe.classList.contains('hidden')) {
+                    if (iframe) {
                          hideContentFrame();
                     }
                 });
@@ -371,7 +364,7 @@
                             }
                             sessionStorage.removeItem("lastVisitedTable");
                         }, 400);
-                    } else if (enteredPasscode.length >= 4) { 
+                    } else if (enteredPasscode.length >= 4) { // check only when 4 digits are entered
                         passcodeDisplay.classList.add("shake");
                         setTimeout(() => {
                             passcodeDisplay.classList.remove("shake");
@@ -525,4 +518,3 @@
     </script>
 </body>
 </html>
-
