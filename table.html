@@ -258,7 +258,7 @@
             <div id="keypad">
                 <div class="keypad-row"><button class="keypad-btn" data-key="0"><span>0</span></button><button class="keypad-btn" data-key="1"><span>1</span></button><button class="keypad-btn" data-key="2"><span>2</span></button><button class="keypad-btn" data-key="3"><span>3</span></button><button class="keypad-btn" data-key="4"><span>4</span></button></div>
                 <div class="keypad-row"><button class="keypad-btn" data-key="5"><span>5</span></button><button class="keypad-btn" data-key="6"><span>6</span></button><button class="keypad-btn" data-key="7"><span>7</span></button><button class="keypad-btn" data-key="8"><span>8</span></button><button class="keypad-btn" data-key="9"><span>9</span></button></div>
-                <div class="keypad-row"><button class="keypad-btn key-char" data-key="B"><span>B</span></button><button class="keypad-btn key-char" data-key="C"><span>C</span></button><button class="keypad-btn key-char" data-key="F"><span>F</span></button><button class="keypad-btn key-char" data-key="G"><span>G</span></button><button class="keypad-btn key-char" data-key="H"><span>H</span></button></div>
+                <div class="keypad-row"><button class="keypad-btn key-char" data-key="B"><span>B</span></button><button class="keypad-btn key-char" data-key="C"><span>C</span></button><button class="keypad-btn key-char" data-key="F"><span>F</span></button><button class="keypad-btn" data-key="G"><span>G</span></button><button class="keypad-btn key-char" data-key="H"><span>H</span></button></div>
                 <div class="keypad-row"><button class="keypad-btn key-space" data-key=" "><span>Space</span></button><button class="keypad-btn delete-key" data-key="backspace"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: white;"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg></button></div>
             </div>
         </div>
@@ -273,8 +273,6 @@
     <div id="loader-overlay" class="hidden">
         <div class="loader"></div>
     </div>
-
-    <iframe id="content-frame" class="hidden"></iframe>
     
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -293,53 +291,12 @@
 
                 const showLoader = () => loaderOverlay.classList.remove("hidden");
                 const hideLoader = () => loaderOverlay.classList.add("hidden");
-                let iframeLoadTimeout = null;
 
                 function showContentFrame(url) {
-                    if (iframeLoadTimeout) clearTimeout(iframeLoadTimeout);
                     showLoader();
-                    document.querySelectorAll('.container, #table-modal, #passcode-overlay').forEach(el => el.classList.add('hidden'));
-                    
-                    const iframe = document.getElementById('content-frame');
-                    
-                    iframe.onload = () => {
-                        clearTimeout(iframeLoadTimeout);
-                        hideLoader();
-                    };
-
                     const cacheBustedUrl = url + (url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
-                    iframe.src = cacheBustedUrl;
-                    iframe.classList.remove('hidden');
-                    
-                    history.pushState({iframeVisible: true}, "");
-
-                    iframeLoadTimeout = setTimeout(() => {
-                        console.warn("Iframe onload event timed out. Hiding loader to prevent being stuck.");
-                        hideLoader();
-                    }, 8000); 
+                    window.location.href = cacheBustedUrl;
                 }
-
-
-                function hideContentFrame() {
-                    if (iframeLoadTimeout) clearTimeout(iframeLoadTimeout);
-                    hideLoader(); 
-                    const iframe = document.getElementById('content-frame');
-                    if (iframe) {
-                        iframe.classList.add('hidden');
-                        iframe.src = 'about:blank';
-                    }
-                    document.querySelectorAll('.container, #table-modal, #passcode-overlay').forEach(el => {
-                        if (el) el.classList.remove('hidden')
-                    });
-                    relockScreen();
-                }
-
-                window.addEventListener('popstate', function(event) {
-                    const iframe = document.getElementById('content-frame');
-                    if (iframe && !iframe.classList.contains('hidden')) {
-                         hideContentFrame();
-                    }
-                });
 
                 function createPasscodeKeypad() {
                     const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "delete"];
@@ -423,8 +380,7 @@
                 goBackButton.addEventListener("click", () => {
                     const lastUrl = sessionStorage.getItem("lastVisitedTable");
                     if (lastUrl) {
-                        showLoader();
-                        setTimeout(() => showContentFrame(lastUrl), 100);
+                        showContentFrame(lastUrl)
                     }
                 });
 
