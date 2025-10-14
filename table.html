@@ -292,21 +292,38 @@
                 const showLoader = () => loaderOverlay.classList.remove("hidden");
                 const hideLoader = () => loaderOverlay.classList.add("hidden");
                 
+                let iframeLoadTimeout; 
+
                 function showContentFrame(url) {
                     document.querySelectorAll('.container, #table-modal, #passcode-overlay').forEach(el => el.classList.add('hidden'));
+
+                    const existingIframe = document.getElementById('content-frame');
+                    if (existingIframe) {
+                        existingIframe.remove();
+                    }
 
                     const iframe = document.createElement('iframe');
                     iframe.id = 'content-frame';
                     iframe.src = url;
-                    
-                    iframe.onload = hideLoader;
+                    iframe.sandbox = "allow-scripts allow-same-origin allow-forms allow-popups";
+
+                    iframe.onload = () => {
+                        clearTimeout(iframeLoadTimeout); 
+                        hideLoader();
+                    };
 
                     document.body.appendChild(iframe);
-
                     history.pushState({iframeVisible: true}, "");
+
+                    iframeLoadTimeout = setTimeout(() => {
+                        console.warn("Iframe failed to load, falling back to redirect.");
+                        iframe.remove();
+                        window.location.href = url;
+                    }, 10000); 
                 }
 
                 function hideContentFrame() {
+                    clearTimeout(iframeLoadTimeout);
                     hideLoader(); 
                     const iframe = document.getElementById('content-frame');
                     if (iframe) {
@@ -364,7 +381,7 @@
                             }
                             sessionStorage.removeItem("lastVisitedTable");
                         }, 400);
-                    } else if (enteredPasscode.length >= 4) { // check only when 4 digits are entered
+                    } else if (enteredPasscode.length >= 4) { 
                         passcodeDisplay.classList.add("shake");
                         setTimeout(() => {
                             passcodeDisplay.classList.remove("shake");
