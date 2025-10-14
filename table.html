@@ -52,16 +52,6 @@
             overflow: hidden;
         }
         
-        #content-frame {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            border: none;
-            z-index: 10001;
-        }
-
         .hidden { display: none !important; }
         
         .container {
@@ -292,46 +282,11 @@
                 const showLoader = () => loaderOverlay.classList.remove("hidden");
                 const hideLoader = () => loaderOverlay.classList.add("hidden");
 
-                function showContentFrame(url) {
-                    document.querySelectorAll('.container, #table-modal, #passcode-overlay').forEach(el => el.classList.add('hidden'));
-
-                    const existingIframe = document.getElementById('content-frame');
-                    if (existingIframe) {
-                        existingIframe.remove();
-                    }
-
-                    const iframe = document.createElement('iframe');
-                    iframe.id = 'content-frame';
-                    iframe.src = url;
-                    iframe.setAttribute('allowfullscreen', '');
-                    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups');
-
-                    iframe.onload = () => {
-                        hideLoader();
-                    };
-                    
-                    document.body.appendChild(iframe);
-                    history.pushState({iframeVisible: true}, "");
+                function navigateToLink(url) {
+                    showLoader();
+                    const cacheBustedUrl = url + (url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
+                    window.location.href = cacheBustedUrl;
                 }
-
-                function hideContentFrame() {
-                    hideLoader(); 
-                    const iframe = document.getElementById('content-frame');
-                    if (iframe) {
-                        iframe.remove();
-                    }
-                    document.querySelectorAll('.container, #table-modal, #passcode-overlay').forEach(el => {
-                        if (el) el.classList.remove('hidden')
-                    });
-                    relockScreen();
-                }
-
-                window.addEventListener('popstate', function(event) {
-                    const iframe = document.getElementById('content-frame');
-                    if (iframe && history.state && history.state.iframeVisible) {
-                         hideContentFrame();
-                    }
-                });
 
                 function createPasscodeKeypad() {
                     const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "delete"];
@@ -415,8 +370,7 @@
                 goBackButton.addEventListener("click", () => {
                     const lastUrl = sessionStorage.getItem("lastVisitedTable");
                     if (lastUrl) {
-                        showLoader();
-                        setTimeout(() => showContentFrame(lastUrl), 100);
+                        navigateToLink(lastUrl)
                     }
                 });
 
@@ -442,10 +396,7 @@
                             btn.addEventListener("click", (e) => {
                                 e.currentTarget.classList.add("selected");
                                 sessionStorage.setItem("lastVisitedTable", table.link);
-                                showLoader();
-                                setTimeout(() => {
-                                    showContentFrame(table.link);
-                                }, 400);
+                                navigateToLink(table.link);
                             });
                             buttonGrid.appendChild(btn);
                         });
@@ -455,8 +406,7 @@
                         const match = tablesData.find(t => normalizeString(t.name) === normalizeString(tableName));
                         if (match) {
                             sessionStorage.setItem("lastVisitedTable", match.link);
-                            showLoader();
-                            setTimeout(() => showContentFrame(match.link), 100);
+                            navigateToLink(match.link);
                         }
                     }
 
@@ -470,25 +420,18 @@
                         document.querySelectorAll(".selected").forEach(button => button.classList.remove("selected"));
                         const lastUrl = sessionStorage.getItem("lastVisitedTable");
                         
-                        if (event.persisted) {
-                            relockScreen();
-                        } else if (lastUrl) {
-                            sessionStorage.removeItem("lastVisitedTable");
-                            goBackButton.classList.add("hidden");
+                        // When returning to the app, always re-lock the screen.
+                        if (sessionStorage.getItem("lastVisitedTable")) {
+                           relockScreen();
                         }
                     });
                 }
                 
-                // Simplified startup logic
-                const lastUrl = sessionStorage.getItem('lastVisitedTable');
-                if(lastUrl){
-                    relockScreen();
-                } else {
-                    // Start with an empty passcode and let the user enter it.
-                    enteredPasscode = "";
-                    updatePasscodeDisplay();
-                    createPasscodeKeypad();
-                }
+                // Initial load logic
+                initializeApp();
+                createPasscodeKeypad();
+                updatePasscodeDisplay();
+
 
             } catch (error) {
                 // Fallback for any unexpected errors
@@ -504,7 +447,7 @@
                     "name": "Bite Sushi House",
                     "short_name": "Bite Sushi",
                     "start_url": ".",
-                    "display": "standalone",
+                    "display": "fullscreen",
                     "background_color": "#0a0f1a",
                     "theme_color": "#0a0f1a",
                     "description": "Bite Sushi House Table Selection.",
