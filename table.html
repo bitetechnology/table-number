@@ -51,7 +51,7 @@
             padding: clamp(15px, 3vw, 30px);
             overflow: hidden;
         }
-
+        
         #content-frame {
             position: fixed;
             top: 0;
@@ -61,7 +61,7 @@
             border: none;
             z-index: 10001;
         }
-        
+
         .hidden { display: none !important; }
         
         .container {
@@ -449,7 +449,10 @@
                             btn.addEventListener("click", (e) => {
                                 e.currentTarget.classList.add("selected");
                                 sessionStorage.setItem("lastVisitedTable", table.link);
-                                showContentFrame(table.link);
+                                showLoader();
+                                setTimeout(() => {
+                                    showContentFrame(table.link);
+                                }, 400);
                             });
                             buttonGrid.appendChild(btn);
                         });
@@ -459,7 +462,8 @@
                         const match = tablesData.find(t => normalizeString(t.name) === normalizeString(tableName));
                         if (match) {
                             sessionStorage.setItem("lastVisitedTable", match.link);
-                            showContentFrame(match.link);
+                            showLoader();
+                            setTimeout(() => showContentFrame(match.link), 100);
                         }
                     }
 
@@ -473,8 +477,8 @@
                         document.querySelectorAll(".selected").forEach(button => button.classList.remove("selected"));
                         const lastUrl = sessionStorage.getItem("lastVisitedTable");
                         
-                        if (event.persisted && lastUrl) {
-                           relockScreen();
+                        if (event.persisted) {
+                            relockScreen();
                         } else if (lastUrl) {
                             sessionStorage.removeItem("lastVisitedTable");
                             goBackButton.classList.add("hidden");
@@ -529,6 +533,4 @@
     </script>
 </body>
 </html>
-
-
 
