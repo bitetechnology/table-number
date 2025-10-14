@@ -308,50 +308,15 @@
                 const showLoader = () => loaderOverlay.classList.remove("hidden");
                 const hideLoader = () => loaderOverlay.classList.add("hidden");
 
-                function showContentFrame(url) {
-                    document.querySelectorAll('.container, #table-modal, #passcode-overlay').forEach(el => el.classList.add('hidden'));
-
-                    const existingIframe = document.getElementById('content-frame');
-                    if (existingIframe) {
-                        existingIframe.remove();
-                    }
-
-                    const iframe = document.createElement('iframe');
-                    iframe.id = 'content-frame';
-                    iframe.src = url;
-                    iframe.setAttribute('allowfullscreen', '');
-                    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups');
-
-                    iframe.onload = () => {
-                        hideLoader();
-                    };
-                    
-                    document.body.appendChild(iframe);
-                    history.pushState({iframeVisible: true}, "");
+                function showContentInNewTab(url) {
+                    console.log("Opening URL in new tab:", url);
+                    window.open(url, '_blank');
+                    // Since we are opening in a new tab, we might not need the loader
+                    // or we might want to show it for a very brief period.
+                    // For now, let's remove the loader logic from here to simplify.
+                    document.querySelectorAll(".selected").forEach(button => button.classList.remove("selected"));
                 }
-
-                function hideContentFrame() {
-                    hideLoader(); 
-                    const iframe = document.getElementById('content-frame');
-                    if (iframe) {
-                        iframe.remove();
-                    }
-                    document.querySelectorAll('.container, #table-modal, #passcode-overlay').forEach(el => {
-                        if (el) el.classList.remove('hidden')
-                    });
-                    relockScreen();
-                }
-
-                // --- THIS IS THE CORRECTED CODE BLOCK ---
-                window.addEventListener('popstate', function(event) {
-                    const iframe = document.getElementById('content-frame');
-                    // Check if an iframe is visible and the new history state is NOT the iframe state.
-                    if (iframe && (!event.state || !event.state.iframeVisible)) {
-                        hideContentFrame();
-                    }
-                });
-                // --- END OF CORRECTION ---
-
+                
                 function createPasscodeKeypad() {
                     const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "delete"];
                     passcodeKeypad.innerHTML = "";
@@ -407,13 +372,6 @@
                     mainContainer.classList.remove("unlocked");
                     passcodeOverlay.style.display = "flex";
                     passcodeOverlay.classList.remove("unlocked");
-                    
-                    const lastUrl = sessionStorage.getItem("lastVisitedTable");
-                    if (lastUrl) {
-                        goBackButton.classList.remove("hidden");
-                    } else {
-                        goBackButton.classList.add("hidden");
-                    }
                 }
 
                 passcodeKeypad.addEventListener("click", (e) => {
@@ -432,17 +390,14 @@
                 });
 
                 goBackButton.addEventListener("click", () => {
-                    const lastUrl = sessionStorage.getItem("lastVisitedTable");
-                    if (lastUrl) {
-                        showLoader();
-                        showContentFrame(lastUrl);
-                    }
+                   // This button is no longer needed with the new tab logic, but we'll leave the logic here
+                   // in case the UI is restored in the future.
                 });
 
                 createPasscodeKeypad();
 
                 function initializeApp() {
-                    const tablesData = [ { "link": "https://bite.technology/menu/53/273", "name": " 01" }, { "link": "https://bite.technology/menu/53/274", "name": "01 B" }, { "link": "https://bite.technology/menu/53/275", "name": "01 C" }, { "link": "https://bite.technology/menu/53/276", "name": "01 F" }, { "link": "https://bite.technology/menu/53/277", "name": "01 G" }, { "link": "https://bite.technology/menu/53/278", "name": " 02 " }, { "link": "https://bite.technology/menu/53/279", "name": "02 B" }, { "link": "https://bite.technology/menu/53/280", "name": "02 C" }, { "link": "https://bite.technology/menu/53/281", "name": "02 F" }, { "link": "https://bite.technology/menu/53/282", "name": "02 G" }, { "link": "https://bite.technology/menu/53/283", "name": "02 H" }, { "link": "https://bite.technology/menu/53/284", "name": " 03" }, { "link": "https://bite.technology/menu/53/285", "name": "03 B" }, { "link": "https://bite.technology/menu/53/286", "name": "03 C" }, { "link": "https://bite.technology/menu/53/287", "name": "03 F" }, { "link": "https://bite.technology/menu/53/288", "name": " 05" }, { "link": "https://bite.technology/menu/53/289", "name": "05 B" }, { "link": "https://bite.technology/menu/53/290", "name": "05 C" }, { "link": "https://bite.technology/menu/53/291", "name": "05 F" }, { "link": "https://bite.technology/menu/53/292", "name": "05 G" }, { "link": "https://bite.technology/menu/53/293", "name": " 06" }, { "link": "https://bite.technology/menu/53/294", "name": "06 B" }, { "link": "https://bite.technology/menu/53/295", "name": "06 C" }, { "link": "https://bite.technology/menu/53/296", "name": "06 F" }, { "link": "https://bite.technology/menu/53/297", "name": "06 G" }, { "link": "https://bite.technology/menu/53/298", "name": " 07" }, { "link": "https://bite.technology/menu/53/299", "name": "07 B" }, { "link": "https://bite.technology/menu/53/300", "name": "07 C" }, { "link": "https://bite.technology/menu/53/301", "name": "07 F" }, { "link": "https://bite.technology/menu/53/302", "name": "07 G" }, { "link": "https://bite.technology/menu/53/303", "name": " 08" }, { "link": "https://bite.technology/menu/53/304", "name": "08 B" }, { "link": "https://bite.technology/menu/53/305", "name": "08 C" }, { "link": "https://bite.technology/menu/53/306", "name": "08 F" }, { "link": "https://bite.technology/menu/53/307", "name": "08 G" }, { "link": "https://bite.technology/menu/53/308", "name": " 09" }, { "link": "https://bite.technology/menu/53/309", "name": "09 B" }, { "link": "https://bite.technology/menu/53/310", "name": "09 C" }, { "link": "https://bite.technology/menu/53/311", "name": "09 F" }, { "link": "https://bite.technology/menu/53/312", "name": "09 G" }, { "link": "https://bite.technology/menu/53/313", "name": " 10" }, { "link": "https://bite.technology/menu/53/314", "name": "10 B" }, { "link": "https://bite.technology/menu/53/315", "name": "10 C" }, { "link": "https://bite.technology/menu/53/316", "name": "10 F" }, { "link": "https://bite.technology/menu/53/317", "name": " 11" }, { "link": "https://bite.technology/menu/53/318", "name": "11 B" }, { "link": "https://bite.technology/menu/53/319", "name": "11 C" }, { "link": "https://bite.technology/menu/53/320", "name": "11 F" }, { "link": "https://bite.technology/menu/53/321", "name": " 15" }, { "link": "https://bite.technology/menu/53/322", "name": "15 B" }, { "link": "https://bite.technology/menu/53/323", "name": "15 B" }, { "link": "https://bite.technology/menu/53/324", "name": "15 C" }, { "link": "https://bite.technology/menu/53/325", "name": "15 G" }, { "link": "https://bite.technology/menu/53/326", "name": " 16" }, { "link": "https://bite.technology/menu/53/327", "name": "16 B" }, { "link": "https://bite.technology/menu/53/328", "name": "16 C" }, { "link": "https://bite.technology/menu/53/329", "name": "16 G" }, { "link": "https://bite.technology/menu/53/330", "name": " 18" }, { "link": "https://bite.technology/menu/53/331", "name": " 19" }, { "link": "https://bite.technology/menu/53/332", "name": " 20" }, { "link": "https://bite.technology/menu/53/333", "name": " 20" }, { "link": "https://bite.technology/menu/53/334", "name": "20 B" }, { "link": "https://bite.technology/menu/53/335", "name": " 21" }, { "link": "https://bite.technology/menu/53/336", "name": "21 B" }, { "link": "https://bite.technology/menu/53/337", "name": " 22" }, { "link": "https://bite.technology/menu/53/338", "name": "22 B" }, { "link": "https://bite.technology/menu/53/339", "name": "22 C" }, { "link": "https://bite.technology/menu/53/340", "name": " 23" }, { "link": "https://bite.technology/menu/53/341", "name": "23 B" }, { "link": "https://bite.technology/menu/53/342", "name": "23 C" }, { "link": "https://bite.technology/menu/53/343", "name": " 25" }, { "link": "https://bite.technology/menu/53/344", "name": "25 B" }, { "link": "https://bite.technology/menu/53/345", "name": " 26" }, { "link": "https://bite.technology/menu/53/346", "name": "26 B" }, { "link": "https://bite.technology/menu/53/347", "name": " 31" }, { "link": "https://bite.technology/menu/53/348", "name": "31 B" }, { "link": "https://bite.technology/menu/53/349", "name": "31 C" }, { "link": "https://bite.technology/menu/53/350", "name": " 32" }, { "link": "https://bite.technology/menu/53/351", "name": "32 B" }, { "link": "https://bite.technology/menu/53/352", "name": "32 C" }, { "link": "https://bite.technology/menu/53/353", "name": " 33" }, { "link": "https://bite.technology/menu/53/354", "name": "33 B" }, { "link": "https://bite.technology/menu/53/355", "name": "33 C" }, { "link": "https://bite.technology/menu/53/356", "name": " 35" }, { "link": "https://bite.technology/menu/53/357", "name": "35 B" }, { "link": "https://bite.technology/menu/53/358", "name": "35 C" }, { "link": "https://bite.technology/menu/53/359", "name": " 36" }, { "link": "https://bite.technology/menu/53/360", "name": "36 B" }, { "link": "https://bite.technology/menu/53/361", "name": "36 C" }, { "link": "https://bite.technology/menu/53/362", "name": " 37" }, { "link": "https://bite.technology/menu/53/6462", "name": "37 B" }, { "link": "https://bite.technology/menu/53/6553", "name": "37 C" }, { "link": "https://bite.technology/menu/53/6645", "name": "38 " }, { "link": "https://bite.technology/menu/53/6738", "name": "38 B" }, { "link": "https://bite.technology/menu/53/6832", "name": "38 C" }, { "link": "https://bite.technology/menu/53/6927", "name": " 39" }, { "link": "https://bite.technology/menu/53/7023", "name": "39 B" }, { "link": "https://bite.technology/menu/53/7120", "name": " 40" }, { "link": "https://bite.technology/menu/53/7218", "name": "40 B" }, { "link": "https://bite.technology/menu/53/7317", "name": "40 C" }, { "link": "https://bite.technology/menu/53/7417", "name": " 41" }, { "link": "https://bite.technology/menu/53/7518", "name": "41 B" }, { "link": "https://bite.technology/menu/53/7620", "name": "41 C" }, { "link": "https://bite.technology/menu/53/7723", "name": " 42" }, { "link": "https://bite.technology/menu/53/7827", "name": "42 B" }, { "link": "https://bite.technology/menu/53/7932", "name": "42 C" } ];
+                    const tablesData = [ { "link": "https://en.m.wikipedia.org/wiki/Sushi", "name": " 01" }, { "link": "https://bite.technology/menu/53/274", "name": "01 B" }, { "link": "https://bite.technology/menu/53/275", "name": "01 C" }, { "link": "https://bite.technology/menu/53/276", "name": "01 F" }, { "link": "https://bite.technology/menu/53/277", "name": "01 G" }, { "link": "https://bite.technology/menu/53/278", "name": " 02 " }, { "link": "https://bite.technology/menu/53/279", "name": "02 B" }, { "link": "https://bite.technology/menu/53/280", "name": "02 C" }, { "link": "https://bite.technology/menu/53/281", "name": "02 F" }, { "link": "https://bite.technology/menu/53/282", "name": "02 G" }, { "link": "https://bite.technology/menu/53/283", "name": "02 H" }, { "link": "https://bite.technology/menu/53/284", "name": " 03" }, { "link": "https://bite.technology/menu/53/285", "name": "03 B" }, { "link": "https://bite.technology/menu/53/286", "name": "03 C" }, { "link": "https://bite.technology/menu/53/287", "name": "03 F" }, { "link": "https://bite.technology/menu/53/288", "name": " 05" }, { "link": "https://bite.technology/menu/53/289", "name": "05 B" }, { "link": "https://bite.technology/menu/53/290", "name": "05 C" }, { "link": "https://bite.technology/menu/53/291", "name": "05 F" }, { "link": "https://bite.technology/menu/53/292", "name": "05 G" }, { "link": "https://bite.technology/menu/53/293", "name": " 06" }, { "link": "https://bite.technology/menu/53/294", "name": "06 B" }, { "link": "https://bite.technology/menu/53/295", "name": "06 C" }, { "link": "https://bite.technology/menu/53/296", "name": "06 F" }, { "link": "https://bite.technology/menu/53/297", "name": "06 G" }, { "link": "https://bite.technology/menu/53/298", "name": " 07" }, { "link": "https://bite.technology/menu/53/299", "name": "07 B" }, { "link": "https://bite.technology/menu/53/300", "name": "07 C" }, { "link": "https://bite.technology/menu/53/301", "name": "07 F" }, { "link": "https://bite.technology/menu/53/302", "name": "07 G" }, { "link": "https://bite.technology/menu/53/303", "name": " 08" }, { "link": "https://bite.technology/menu/53/304", "name": "08 B" }, { "link": "https://bite.technology/menu/53/305", "name": "08 C" }, { "link": "https://bite.technology/menu/53/306", "name": "08 F" }, { "link": "https://bite.technology/menu/53/307", "name": "08 G" }, { "link": "https://bite.technology/menu/53/308", "name": " 09" }, { "link": "https://bite.technology/menu/53/309", "name": "09 B" }, { "link": "https://bite.technology/menu/53/310", "name": "09 C" }, { "link": "https://bite.technology/menu/53/311", "name": "09 F" }, { "link": "https://bite.technology/menu/53/312", "name": "09 G" }, { "link": "https://bite.technology/menu/53/313", "name": " 10" }, { "link": "https://bite.technology/menu/53/314", "name": "10 B" }, { "link": "https://bite.technology/menu/53/315", "name": "10 C" }, { "link": "https://bite.technology/menu/53/316", "name": "10 F" }, { "link": "https://bite.technology/menu/53/317", "name": " 11" }, { "link": "https://bite.technology/menu/53/318", "name": "11 B" }, { "link": "https://bite.technology/menu/53/319", "name": "11 C" }, { "link": "https://bite.technology/menu/53/320", "name": "11 F" }, { "link": "https://bite.technology/menu/53/321", "name": " 15" }, { "link": "https://bite.technology/menu/53/322", "name": "15 B" }, { "link": "https://bite.technology/menu/53/323", "name": "15 B" }, { "link": "https://bite.technology/menu/53/324", "name": "15 C" }, { "link": "https://bite.technology/menu/53/325", "name": "15 G" }, { "link": "https://bite.technology/menu/53/326", "name": " 16" }, { "link": "https://bite.technology/menu/53/327", "name": "16 B" }, { "link": "https://bite.technology/menu/53/328", "name": "16 C" }, { "link": "https://bite.technology/menu/53/329", "name": "16 G" }, { "link": "https://bite.technology/menu/53/330", "name": " 18" }, { "link": "https://bite.technology/menu/53/331", "name": " 19" }, { "link": "https://bite.technology/menu/53/332", "name": " 20" }, { "link": "https://bite.technology/menu/53/333", "name": " 20" }, { "link": "https://bite.technology/menu/53/334", "name": "20 B" }, { "link": "https://bite.technology/menu/53/335", "name": " 21" }, { "link": "https://bite.technology/menu/53/336", "name": "21 B" }, { "link": "https://bite.technology/menu/53/337", "name": " 22" }, { "link": "https://bite.technology/menu/53/338", "name": "22 B" }, { "link": "https://bite.technology/menu/53/339", "name": "22 C" }, { "link": "https://bite.technology/menu/53/340", "name": " 23" }, { "link": "https://bite.technology/menu/53/341", "name": "23 B" }, { "link": "https://bite.technology/menu/53/342", "name": "23 C" }, { "link": "https://bite.technology/menu/53/343", "name": " 25" }, { "link": "https://bite.technology/menu/53/344", "name": "25 B" }, { "link": "https://bite.technology/menu/53/345", "name": " 26" }, { "link": "https://bite.technology/menu/53/346", "name": "26 B" }, { "link": "https://bite.technology/menu/53/347", "name": " 31" }, { "link": "https://bite.technology/menu/53/348", "name": "31 B" }, { "link": "https://bite.technology/menu/53/349", "name": "31 C" }, { "link": "https://bite.technology/menu/53/350", "name": " 32" }, { "link": "https://bite.technology/menu/53/351", "name": "32 B" }, { "link": "https://bite.technology/menu/53/352", "name": "32 C" }, { "link": "https://bite.technology/menu/53/353", "name": " 33" }, { "link": "https://bite.technology/menu/53/354", "name": "33 B" }, { "link": "https://bite.technology/menu/53/355", "name": "33 C" }, { "link": "https://bite.technology/menu/53/356", "name": " 35" }, { "link": "https://bite.technology/menu/53/357", "name": "35 B" }, { "link": "https://bite.technology/menu/53/358", "name": "35 C" }, { "link": "https://bite.technology/menu/53/359", "name": " 36" }, { "link": "https://bite.technology/menu/53/360", "name": "36 B" }, { "link": "https://bite.technology/menu/53/361", "name": "36 C" }, { "link": "https://bite.technology/menu/53/362", "name": " 37" }, { "link": "https://bite.technology/menu/53/6462", "name": "37 B" }, { "link": "https://bite.technology/menu/53/6553", "name": "37 C" }, { "link": "https://bite.technology/menu/53/6645", "name": "38 " }, { "link": "https://bite.technology/menu/53/6738", "name": "38 B" }, { "link": "https://bite.technology/menu/53/6832", "name": "38 C" }, { "link": "https://bite.technology/menu/53/6927", "name": " 39" }, { "link": "https://bite.technology/menu/53/7023", "name": "39 B" }, { "link": "https://bite.technology/menu/53/7120", "name": " 40" }, { "link": "https://bite.technology/menu/53/7218", "name": "40 B" }, { "link": "https://bite.technology/menu/53/7317", "name": "40 C" }, { "link": "https://bite.technology/menu/53/7417", "name": " 41" }, { "link": "https://bite.technology/menu/53/7518", "name": "41 B" }, { "link": "https://bite.technology/menu/53/7620", "name": "41 C" }, { "link": "https://bite.technology/menu/53/7723", "name": " 42" }, { "link": "https://bite.technology/menu/53/7827", "name": "42 B" }, { "link": "https://bite.technology/menu/53/7932", "name": "42 C" } ];
                     const buttonGrid = document.getElementById("button-grid"), modal = document.getElementById("table-modal"), openModalBtn = document.getElementById("open-modal-btn"), closeModalBtn = document.getElementById("modal-close-btn"), modalInput = document.getElementById("modal-table-input"), suggestionsContainer = document.getElementById("modal-suggestions"), keypad = document.getElementById("keypad"), sendBtn = document.getElementById("modal-send-btn");
                     let isModalOpen = false;
                     const openModal = () => { if (!isModalOpen) { modal.style.display = "flex"; isModalOpen = true; history.pushState({modal: true}, null); } };
@@ -460,9 +415,7 @@
                             btn.appendChild(span);
                             btn.addEventListener("click", (e) => {
                                 e.currentTarget.classList.add("selected");
-                                sessionStorage.setItem("lastVisitedTable", table.link);
-                                showLoader();
-                                showContentFrame(table.link);
+                                showContentInNewTab(table.link);
                             });
                             buttonGrid.appendChild(btn);
                         });
@@ -471,9 +424,7 @@
                     function navigateToTable(tableName) {
                         const match = tablesData.find(t => normalizeString(t.name) === normalizeString(tableName));
                         if (match) {
-                            sessionStorage.setItem("lastVisitedTable", match.link);
-                            showLoader();
-                            showContentFrame(match.link);
+                            showContentInNewTab(match.link);
                         }
                     }
 
@@ -485,14 +436,6 @@
                     window.addEventListener("pageshow", function(event) {
                         hideLoader();
                         document.querySelectorAll(".selected").forEach(button => button.classList.remove("selected"));
-                        const lastUrl = sessionStorage.getItem("lastVisitedTable");
-                        
-                        if (event.persisted) {
-                            relockScreen();
-                        } else if (lastUrl) {
-                            sessionStorage.removeItem("lastVisitedTable");
-                            goBackButton.classList.add("hidden");
-                        }
                     });
                 }
                 
