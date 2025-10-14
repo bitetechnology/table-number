@@ -292,6 +292,14 @@
                 const showLoader = () => loaderOverlay.classList.remove("hidden");
                 const hideLoader = () => loaderOverlay.classList.add("hidden");
 
+                // --- NEW CODE BLOCK TO CLEAR CACHE ON RELOAD/CLOSE ---
+                window.addEventListener('beforeunload', function() {
+                    // Clear all session and local storage to ensure a fresh start
+                    sessionStorage.clear();
+                    localStorage.clear();
+                });
+                // --- END OF NEW CODE BLOCK ---
+
                 function showContentFrame(url) {
                     document.querySelectorAll('.container, #table-modal, #passcode-overlay').forEach(el => el.classList.add('hidden'));
 
@@ -326,15 +334,12 @@
                     relockScreen();
                 }
 
-                // --- THIS IS THE CORRECTED CODE BLOCK ---
                 window.addEventListener('popstate', function(event) {
                     const iframe = document.getElementById('content-frame');
-                    // Check if an iframe is visible and the new history state is NOT the iframe state.
                     if (iframe && (!event.state || !event.state.iframeVisible)) {
                         hideContentFrame();
                     }
                 });
-                // --- END OF CORRECTION ---
 
                 function createPasscodeKeypad() {
                     const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "delete"];
