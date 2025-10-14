@@ -293,6 +293,7 @@
                 const hideLoader = () => loaderOverlay.classList.add("hidden");
 
                 function showContentFrame(url) {
+                    showLoader();
                     document.querySelectorAll('.container, #table-modal, #passcode-overlay').forEach(el => el.classList.add('hidden'));
 
                     const existingIframe = document.getElementById('content-frame');
@@ -311,7 +312,10 @@
                     };
                     
                     document.body.appendChild(iframe);
-                    history.pushState({iframeVisible: true}, "");
+                    // Only push state if one doesn't already exist for the iframe
+                    if (!history.state || !history.state.iframeVisible) {
+                        history.pushState({iframeVisible: true}, "");
+                    }
                 }
 
                 function hideContentFrame() {
@@ -320,18 +324,24 @@
                     if (iframe) {
                         iframe.remove();
                     }
-                    document.querySelectorAll('.container, #table-modal, #passcode-overlay').forEach(el => {
-                        if (el) el.classList.remove('hidden')
-                    });
+                    mainContainer.classList.remove('hidden');
+                    passcodeOverlay.classList.add('hidden'); // Hide passcode until relock
                     relockScreen();
                 }
-
+                
                 // --- THIS IS THE CORRECTED CODE BLOCK ---
                 window.addEventListener('popstate', function(event) {
                     const iframe = document.getElementById('content-frame');
-                    // Check if an iframe is visible and the new history state is NOT the iframe state.
-                    if (iframe && (!event.state || !event.state.iframeVisible)) {
-                        hideContentFrame();
+                    // If an iframe is active and we navigate back, hide it and clear the state.
+                    if (iframe) {
+                        iframe.remove();
+                        // Clear the stored URL to prevent "Go Back" button logic from interfering
+                        sessionStorage.removeItem("lastVisitedTable");
+                        // Return to the main screen, properly unlocked
+                        passcodeOverlay.style.display = "none";
+                        mainContainer.classList.add("unlocked");
+                        // Deselect any previously selected buttons
+                        document.querySelectorAll(".selected").forEach(button => button.classList.remove("selected"));
                     }
                 });
                 // --- END OF CORRECTION ---
@@ -445,10 +455,7 @@
                             btn.addEventListener("click", (e) => {
                                 e.currentTarget.classList.add("selected");
                                 sessionStorage.setItem("lastVisitedTable", table.link);
-                                showLoader();
-                                setTimeout(() => {
-                                    showContentFrame(table.link);
-                                }, 400);
+                                showContentFrame(table.link);
                             });
                             buttonGrid.appendChild(btn);
                         });
@@ -458,8 +465,7 @@
                         const match = tablesData.find(t => normalizeString(t.name) === normalizeString(tableName));
                         if (match) {
                             sessionStorage.setItem("lastVisitedTable", match.link);
-                            showLoader();
-                            setTimeout(() => showContentFrame(match.link), 100);
+                            showContentFrame(match.link);
                         }
                     }
 
@@ -471,13 +477,8 @@
                     window.addEventListener("pageshow", function(event) {
                         hideLoader();
                         document.querySelectorAll(".selected").forEach(button => button.classList.remove("selected"));
-                        const lastUrl = sessionStorage.getItem("lastVisitedTable");
-                        
-                        if (event.persisted) {
+                        if (event.persisted) { // Triggered by back/forward navigation
                             relockScreen();
-                        } else if (lastUrl) {
-                            sessionStorage.removeItem("lastVisitedTable");
-                            goBackButton.classList.add("hidden");
                         }
                     });
                 }
@@ -487,14 +488,11 @@
                 if(lastUrl){
                     relockScreen();
                 } else {
-                    // Start with an empty passcode and let the user enter it.
                     enteredPasscode = "";
                     updatePasscodeDisplay();
-                    createPasscodeKeypad();
                 }
 
             } catch (error) {
-                // Fallback for any unexpected errors
                 document.body.innerHTML = `<div style="color: white; text-align: center; padding: 40px;">An error occurred. Please try restarting the application.</div>`;
                 console.error("Application Error:", error);
             }
