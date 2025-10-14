@@ -273,6 +273,8 @@
     <div id="loader-overlay" class="hidden">
         <div class="loader"></div>
     </div>
+
+    <iframe id="content-frame" class="hidden"></iframe>
     
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -291,34 +293,40 @@
 
                 const showLoader = () => loaderOverlay.classList.remove("hidden");
                 const hideLoader = () => loaderOverlay.classList.add("hidden");
+                let iframeLoadTimeout = null;
 
                 function showContentFrame(url) {
+                    if (iframeLoadTimeout) clearTimeout(iframeLoadTimeout);
+                    showLoader();
                     document.querySelectorAll('.container, #table-modal, #passcode-overlay').forEach(el => el.classList.add('hidden'));
-
-                    const existingIframe = document.getElementById('content-frame');
-                    if (existingIframe) {
-                        existingIframe.remove();
-                    }
-
-                    const iframe = document.createElement('iframe');
-                    iframe.id = 'content-frame';
-                    iframe.src = url;
-                    iframe.setAttribute('allowfullscreen', '');
-                    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups');
-
+                    
+                    const iframe = document.getElementById('content-frame');
+                    
                     iframe.onload = () => {
+                        clearTimeout(iframeLoadTimeout);
                         hideLoader();
                     };
+
+                    const cacheBustedUrl = url + (url.includes('?') ? '&' : '?') + 't=' + new Date().getTime();
+                    iframe.src = cacheBustedUrl;
+                    iframe.classList.remove('hidden');
                     
-                    document.body.appendChild(iframe);
                     history.pushState({iframeVisible: true}, "");
+
+                    iframeLoadTimeout = setTimeout(() => {
+                        console.warn("Iframe onload event timed out. Hiding loader to prevent being stuck.");
+                        hideLoader();
+                    }, 8000); 
                 }
 
+
                 function hideContentFrame() {
+                    if (iframeLoadTimeout) clearTimeout(iframeLoadTimeout);
                     hideLoader(); 
                     const iframe = document.getElementById('content-frame');
                     if (iframe) {
-                        iframe.remove();
+                        iframe.classList.add('hidden');
+                        iframe.src = 'about:blank';
                     }
                     document.querySelectorAll('.container, #table-modal, #passcode-overlay').forEach(el => {
                         if (el) el.classList.remove('hidden')
@@ -328,7 +336,7 @@
 
                 window.addEventListener('popstate', function(event) {
                     const iframe = document.getElementById('content-frame');
-                    if (iframe && history.state && history.state.iframeVisible) {
+                    if (iframe && !iframe.classList.contains('hidden')) {
                          hideContentFrame();
                     }
                 });
@@ -442,10 +450,7 @@
                             btn.addEventListener("click", (e) => {
                                 e.currentTarget.classList.add("selected");
                                 sessionStorage.setItem("lastVisitedTable", table.link);
-                                showLoader();
-                                setTimeout(() => {
-                                    showContentFrame(table.link);
-                                }, 400);
+                                navigateToLink(table.link);
                             });
                             buttonGrid.appendChild(btn);
                         });
@@ -455,8 +460,7 @@
                         const match = tablesData.find(t => normalizeString(t.name) === normalizeString(tableName));
                         if (match) {
                             sessionStorage.setItem("lastVisitedTable", match.link);
-                            showLoader();
-                            setTimeout(() => showContentFrame(match.link), 100);
+                            navigateToLink(match.link);
                         }
                     }
 
@@ -470,25 +474,18 @@
                         document.querySelectorAll(".selected").forEach(button => button.classList.remove("selected"));
                         const lastUrl = sessionStorage.getItem("lastVisitedTable");
                         
-                        if (event.persisted) {
-                            relockScreen();
-                        } else if (lastUrl) {
-                            sessionStorage.removeItem("lastVisitedTable");
-                            goBackButton.classList.add("hidden");
+                        // When returning to the app, always re-lock the screen.
+                        if (sessionStorage.getItem("lastVisitedTable")) {
+                           relockScreen();
                         }
                     });
                 }
                 
-                // Simplified startup logic
-                const lastUrl = sessionStorage.getItem('lastVisitedTable');
-                if(lastUrl){
-                    relockScreen();
-                } else {
-                    // Start with an empty passcode and let the user enter it.
-                    enteredPasscode = "";
-                    updatePasscodeDisplay();
-                    createPasscodeKeypad();
-                }
+                // Initial load logic
+                initializeApp();
+                createPasscodeKeypad();
+                updatePasscodeDisplay();
+
 
             } catch (error) {
                 // Fallback for any unexpected errors
@@ -504,7 +501,7 @@
                     "name": "Bite Sushi House",
                     "short_name": "Bite Sushi",
                     "start_url": ".",
-                    "display": "standalone",
+                    "display": "fullscreen",
                     "background_color": "#0a0f1a",
                     "theme_color": "#0a0f1a",
                     "description": "Bite Sushi House Table Selection.",
@@ -526,3 +523,4 @@
     </script>
 </body>
 </html>
+
